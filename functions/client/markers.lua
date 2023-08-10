@@ -1,0 +1,75 @@
+Utils.Markers = {}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Markers
+-----------------------------------------------------------------------------------------------------------------------------------------
+function Utils.Markers.drawMarker(marker_type,x,y,z,scale)
+	scale = scale or 0.5
+	---@diagnostic disable-next-line: param-type-mismatch
+	DrawMarker(marker_type,x,y,z-0.6,0,0,0,0.0,0,0,scale,scale,scale,255,0,0,50,false, false, 0, true, false, false, false)
+end
+
+function Utils.Markers.drawTruckParkingMarker(x,y,z,h)
+	---@diagnostic disable-next-line: param-type-mismatch
+	DrawMarker(30,x,y,z-0.6,0,0,0,90.0,h,0.0,3.0,1.0,10.0,0,255,0,50,false, false, 0, false, false, false, false)
+end
+
+function Utils.Markers.drawText3D(x,y,z, text)
+	if Config.marker_style == 1 then
+		local onScreen,_x,_y=GetScreenCoordFromWorldCoord(x,y,z)
+		local px,py,pz=table.unpack(GetFinalRenderedCamCoord())
+		local dist = #(vector3(px,py,pz) - vector3(x,y,z))
+
+		local fov = (1/GetGameplayCamFov())*100
+		local scale = fov*(1/dist)*2
+
+		if onScreen then
+			SetTextScale(0.0*scale, 0.35*scale)
+			SetTextFont(0)
+			SetTextProportional(true)
+			SetTextDropshadow(0, 0, 0, 0, 255)
+			SetTextEdge(2, 0, 0, 0, 150)
+			SetTextDropShadow()
+			SetTextOutline()
+			SetTextCentre(true)
+			BeginTextCommandDisplayText("STRING")
+			AddTextComponentSubstringPlayerName(text)
+			EndTextCommandDisplayText(_x,_y)
+		end
+	else
+		SetTextScale(0.35, 0.35)
+		SetTextFont(4)
+		SetTextProportional(true)
+		SetTextColour(255, 255, 255, 215)
+		BeginTextCommandDisplayText("STRING")
+		SetTextCentre(true)
+		AddTextComponentSubstringPlayerName(text)
+		SetDrawOrigin(x,y,z, 0)
+		EndTextCommandDisplayText(0.0, 0.0)
+		local factor = string.len(text) / 370
+		DrawRect(0.0, 0.0125, 0.017 + factor, 0.03, 0, 0, 0, 75)
+		ClearDrawOrigin()
+	end
+end
+
+function Utils.Markers.drawText2D(text,font,x,y,scale,r,g,b,a)
+	SetTextFont(font)
+	SetTextScale(scale,scale)
+	SetTextColour(r,g,b,a)
+	SetTextOutline()
+	SetTextCentre(true)
+	BeginTextCommandDisplayText("STRING")
+	AddTextComponentSubstringPlayerName(text)
+	EndTextCommandDisplayText(x,y)
+end
+
+function Utils.Markers.createMarkerInCoords(market_id,x,y,z,marker_text,onControlIsPressedCallback)
+	local distance = #(GetEntityCoords(PlayerPedId()) - vector3(x,y,z))
+	Utils.Markers.drawMarker(21,x,y,z)
+	if distance <= 1.0 then
+		Utils.Markers.drawText3D(x,y,z-0.6, marker_text)
+		if IsControlJustPressed(0,38) then
+			onControlIsPressedCallback(market_id)
+		end
+	end
+end

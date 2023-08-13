@@ -209,7 +209,7 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 	return false
 end
 
-function Utils.Framework.getPlayerWeapon(source,item,amount)
+function Utils.Framework.getPlayerItem(source,item,amount)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		return exports['ox_inventory']:RemoveItem(source, item, amount)

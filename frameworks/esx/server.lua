@@ -209,12 +209,21 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 	return false
 end
 
+function Utils.Framework.playerHasItem(source,item,amount)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	if xPlayer.getInventoryItem(item) and xPlayer.getInventoryItem(item).count >= amount then
+		return true
+	else
+		return false
+	end
+end
+
 function Utils.Framework.getPlayerItem(source,item,amount)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		return exports['ox_inventory']:RemoveItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
-		if xPlayer.getInventoryItem(item) and xPlayer.getInventoryItem(item).count >= amount then
+		if Utils.Framework.playerHasItem(source,item,amount) then
 			exports['qs-inventory']:RemoveItem(source, item, amount)
 			return true
 		else
@@ -223,7 +232,7 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
-		if xPlayer.getInventoryItem(item) and xPlayer.getInventoryItem(item).count >= amount then
+		if Utils.Framework.playerHasItem(source,item,amount) then
 			xPlayer.removeInventoryItem(item,amount)
 			return true
 		else
@@ -240,7 +249,7 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		return exports['ox_inventory']:RemoveItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
-		if xPlayer.getInventoryItem(item) and xPlayer.getInventoryItem(item).count >= amount then
+		if Utils.Framework.playerHasItem(source,item,amount) then
 			exports['qs-inventory']:RemoveItem(source, item, amount)
 			return true
 		else
@@ -249,7 +258,7 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
-		if xPlayer.getInventoryItem(item) and xPlayer.getInventoryItem(item).count >= amount then
+		if Utils.Framework.playerHasItem(source,item,amount) then
 			xPlayer.removeInventoryItem(item,amount)
 			return true
 		else

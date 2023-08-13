@@ -168,6 +168,15 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 	end
 end
 
+function Utils.Framework.playerHasItem(source,item,amount)
+	local xPlayer = QBCore.Functions.GetPlayer(source)
+	if xPlayer.Functions.GetItemByName(item) and xPlayer.Functions.GetItemByName(item).amount >= amount then
+		return true
+	else
+		return false
+	end
+end
+
 function Utils.Framework.getPlayerItem(source,item,amount)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then

@@ -4,8 +4,10 @@ Utils.Vehicles = {}
 -- SpawnVehicle functions
 -----------------------------------------------------------------------------------------------------------------------------------------
 
-function Utils.Vehicles.spawnVehicle(model,plate,x,y,z,h,blip_name,properties)
+function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 	assert(Utils.Entity.isPlayerNearCoords(x,y,z,424.0),("^3Resource ^1%s^3 Tried to spawn vehicle on the client but the position is too far away (Out of onesync range).^7"):format(GetInvokingResource() or "Unknown"))
+	assert(properties, "Vehicle properties are null")
+	assert(properties.plate, "Vehicle properties must have at least properties.plate")
 
 	local model_hash = GetHashKey(model)
 	loadModel(model_hash)
@@ -16,18 +18,17 @@ function Utils.Vehicles.spawnVehicle(model,plate,x,y,z,h,blip_name,properties)
 	SetNetworkIdCanMigrate(netid, true)
 	SetVehicleNeedsToBeHotwired(vehicle, false)
 	SetVehRadioStation(vehicle, 'OFF')
-	SetVehicleNumberPlateText(vehicle, plate)
 
-	if properties then
-		Utils.Vehicles.setVehicleProperties(vehicle, properties)
+	Utils.Vehicles.setVehicleProperties(vehicle, properties)
+	if properties.fuelLevel then
+		Utils.Framework.setVehicleFuel(vehicle, properties.plate, model, properties.fuelLevel + 0.0)
 	end
 
-	Utils.Framework.giveVehicleKeys(vehicle, plate, model)
-	Utils.Framework.setVehicleFuel(vehicle, plate, model, 100.0)
+	Utils.Framework.giveVehicleKeys(vehicle, properties.plate, model)
 
 	SetModelAsNoLongerNeeded(model_hash)
 
-	local blip = Utils.Blips.createBlipForEntity(vehicle,blip_name,477,26)
+	local blip = Utils.Blips.createBlipForEntity(vehicle,blip_data.name,blip_data.sprite,blip_data.color)
 
 	return vehicle,blip
 end
@@ -215,17 +216,13 @@ end
 function Utils.Vehicles.setVehicleProperties(vehicle, props)
 	if not DoesEntityExist(vehicle) then error(("Unable to set vehicle properties for '%s' (entity does not exist)"):format(vehicle)) end
 
-	if NetworkGetEntityIsNetworked(vehicle) and NetworkGetEntityOwner(vehicle) ~= PlayerPedId() then error(("Unable to set vehicle properties for '%s' (client is not entity owner)"):format(vehicle)) end
-
 	local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
 	local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
 
 	SetVehicleModKit(vehicle, 0)
 	SetVehicleAutoRepairDisabled(vehicle, true)
 
-	if props.plate then
-		SetVehicleNumberPlateText(vehicle, props.plate)
-	end
+	SetVehicleNumberPlateText(vehicle, props.plate)
 
 	if props.plateIndex then
 		SetVehicleNumberPlateTextIndex(vehicle, props.plateIndex)

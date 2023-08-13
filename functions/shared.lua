@@ -4,7 +4,7 @@ Utils.Table = {}
 Utils.Math = {}
 Utils.Config = Config
 Utils.Lang = Lang
-Utils.Version = '1.0.1'
+Utils.Version = '1.0.2'
 
 exports('GetUtils', function()
 	return Utils

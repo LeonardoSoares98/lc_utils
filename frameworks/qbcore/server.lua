@@ -53,11 +53,13 @@ function Utils.Framework.getOnlinePlayers()
 	local players  = {}
 	for i=1, #xPlayers, 1 do
 		local xPlayer = QBCore.Functions.GetPlayer(xPlayers[i])
-		table.insert(players, {
-			source     = xPlayers[i],
-			identifier = xPlayer.PlayerData.citizenid,
-			name       = Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
-		})
+		if xPlayer then
+			table.insert(players, {
+				source     = xPlayers[i],
+				identifier = xPlayer.PlayerData.citizenid,
+				name       = Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
+			})
+		end
 	end
 	return players
 end
@@ -120,9 +122,11 @@ function Utils.Framework.givePlayerItem(source,item,amount)
 		return exports['ps-inventory']:AddItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		return xPlayer.Functions.AddItem(item, amount)
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to give player item
 		-- Must return true if the item was sent to player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 	return false
 end
@@ -138,9 +142,11 @@ local function insertWeaponInInventory(source,item,amount,metadata)
 		return exports['ps-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		return exports['qb-inventory']:AddItem(source, item, amount, nil, metadata)
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to give player weapon
 		-- Must return true if the weapon was sent to player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 	return false
 end
@@ -162,9 +168,11 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 		return false
 	elseif Config.custom_scripts_compatibility.mdt == "default" then
 		return insertWeaponInInventory(source,item,amount)
-	elseif Config.custom_scripts_compatibility.mdt == "other" then
+	else
 		-- If you set the config to other, you must configure here your mdt export
 		-- Must return true if the weapon was sent to player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the mdt you set in Config: ^1"..Config.custom_scripts_compatibility.mdt.."^3. If you dont use any of the pre-built mdts, you must implement it here^7")
 	end
 end
 
@@ -195,9 +203,11 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 		else
 			return false
 		end
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to remove player item
 		-- Must return true if the item was removed from player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 end
 
@@ -219,9 +229,11 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 		else
 			return false
 		end
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to remove player item
 		-- Must return true if the item was removed from player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 end
 

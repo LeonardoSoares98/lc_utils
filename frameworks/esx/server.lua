@@ -177,9 +177,11 @@ function Utils.Framework.givePlayerItem(source,item,amount)
 		else
 			return false
 		end
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to give player item
 		-- Must return true if the item was sent to player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 	return false
 end
@@ -202,9 +204,11 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 		else
 			return false
 		end
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to give player item
 		-- Must return true if the item was sent to player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 	return false
 end
@@ -238,9 +242,11 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 		else
 			return false
 		end
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to remove player item
 		-- Must return true if the item was removed from player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 end
 
@@ -264,9 +270,11 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 		else
 			return false
 		end
-	elseif Config.custom_scripts_compatibility.inventory == "other" then
+	else
 		-- If you set the config to other, you must configure here your export to remove player item
 		-- Must return true if the item was removed from player or false if not
+		-- Remove the error line below
+		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
 	end
 end
 

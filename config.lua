@@ -19,13 +19,14 @@ Config.debug_job = false						-- Enable this to see in F8 the job you are in
 
 -- Here, you can easily switch between the available script compatibilities.
 -- The "default" option will use the framework's default script
--- If you set it to "other," it's necessary to configure the script in the framework file located within the corresponding framework folder
+-- ATTENTION: If you set it to "other," it's necessary to configure the script inside the custom_scripts folder in the respective file
 Config.custom_scripts_compatibility = {
 	['fuel'] = "default",						-- [ox_fuel|ps-fuel|LegacyFuel|default|other] Fuel script Compatibility
 	['inventory'] = "default",					-- [ox_inventory|qs-inventory|ps-inventory|default|other] Inventory script Compatibility
 	['keys'] = "default",						-- [qs-vehiclekeys|cd_garage|jaksam|default|other] Keys script Compatibility
 	['mdt'] = "default",						-- [ps-mdt|default|other] MDT script Compatibility (to log weapon serial)
 	['target'] = "disabled",					-- [qb-target|ox_target|disabled|other] Target script Compatibility (disabled will use markers)
+	['notification'] = "default",				-- [okokNotify|default|other] Notification script Compatibility
 }
 
 Config.marker_style = 1							-- (Only if target is disabled) [1|2] There are 2 available styles for markers, choose them here

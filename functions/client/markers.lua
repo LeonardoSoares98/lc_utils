@@ -3,15 +3,14 @@ Utils.Markers = {}
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- Markers
 -----------------------------------------------------------------------------------------------------------------------------------------
-function Utils.Markers.drawMarker(marker_type,x,y,z,scale)
+function Utils.Markers.drawMarker(marker_type,x,y,z,scale,r,g,b,a)
 	scale = scale or 0.5
+	r = r or 255
+	g = g or 0
+	b = b or 0
+	a = a or 50
 	---@diagnostic disable-next-line: param-type-mismatch
-	DrawMarker(marker_type,x,y,z-0.6,0,0,0,0.0,0,0,scale,scale,scale,255,0,0,50,false, false, 0, true, false, false, false)
-end
-
-function Utils.Markers.drawTruckParkingMarker(x,y,z,h)
-	---@diagnostic disable-next-line: param-type-mismatch
-	DrawMarker(30,x,y,z-0.6,0,0,0,90.0,h,0.0,3.0,1.0,10.0,0,255,0,50,false, false, 0, false, false, false, false)
+	DrawMarker(marker_type,x,y,z-0.6,0,0,0,0.0,0,0,scale,scale,scale,r,g,b,a,false, false, 0, true, false, false, false)
 end
 
 function Utils.Markers.drawText3D(x,y,z, text)

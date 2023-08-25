@@ -8,6 +8,7 @@ lua54 'yes'
 
 client_scripts {
 	"functions/client/*.lua",
+	"custom_scripts/client/*.lua",
 	"frameworks/qbcore/client.lua",
 	"frameworks/esx/client.lua",
 }
@@ -15,6 +16,7 @@ client_scripts {
 server_scripts {
 	"@mysql-async/lib/MySQL.lua",
 	"functions/server/*.lua",
+	"custom_scripts/server/*.lua",
 	"frameworks/qbcore/server.lua",
 	"frameworks/esx/server.lua",
 }

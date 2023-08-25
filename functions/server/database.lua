@@ -8,7 +8,7 @@ function Utils.Database.fetchAll(sql,params)
 	return MySQL.Sync.fetchAll(sql, params)
 end
 
-function Utils.Database.validateTableColumns(tables)
+function Utils.Database.validateTableColumns(tables, add_column_sqls, change_table_sqls)
 	for table, columns in pairs(tables) do
 		if Config.disable_column_check == true then
 			local columns_str = "";
@@ -32,30 +32,18 @@ function Utils.Database.validateTableColumns(tables)
 				for k, column_data in pairs(query_information_schema) do
 					if column == column_data.COLUMN_NAME then
 						column_found = true
-						checkExistingColumnType(table,column,column_data)
+						checkExistingColumnType(table,column,column_data,change_table_sqls)
 					end
 				end
 				if column_found == false then
-					fixMissingColumn(table,column)
+					fixMissingColumn(table,column,add_column_sqls)
 				end
 			end
 		end
 	end
 end
 
-local add_column_sqls = {
-	-- Stores
-	['store_jobs'] = {
-		['trucker_contract_id'] = "ALTER TABLE `store_jobs` ADD COLUMN `trucker_contract_id` INT UNSIGNED NULL DEFAULT NULL AFTER `progress`;",
-	},
-	-- Trucker
-	['trucker_users'] = {
-		['dark_theme'] = "ALTER TABLE `trucker_users` ADD COLUMN `dark_theme` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' AFTER `loan_notify`;",
-		['external_data'] = "ALTER TABLE `trucker_available_contracts` ADD COLUMN `external_data` TEXT NULL DEFAULT NULL AFTER `trailer`;",
-		['progress'] = "ALTER TABLE `trucker_available_contracts` ADD COLUMN `progress` TINYINT(2) NOT NULL DEFAULT '0';",
-	}
-}
-function fixMissingColumn(table_name, column_name)
+function fixMissingColumn(table_name, column_name, add_column_sqls)
 	if add_column_sqls[table_name] and add_column_sqls[table_name][column_name] then
 		Utils.Database.execute(add_column_sqls[table_name][column_name])
 	else
@@ -63,27 +51,7 @@ function fixMissingColumn(table_name, column_name)
 	end
 end
 
---[[
-	SELECT COLUMN_TYPE, DATA_TYPE, COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE FROM `information_schema`.`COLUMNS` 
-	WHERE TABLE_SCHEMA = (SELECT DATABASE() AS default_schema) 
-	AND TABLE_NAME='nome_tabela' 
-	AND COLUMN_NAME='nome_coluna'
-	ORDER BY ORDINAL_POSITION;
-]]
-local change_table_sqls = {
-	-- Trucker
-	['trucker_available_contracts'] = {
-		['progress'] = {
-			['sql'] = "ALTER TABLE `trucker_available_contracts` CHANGE COLUMN `progress` `progress` VARCHAR(50) NULL DEFAULT NULL AFTER `external_data`;",
-			['DATA_TYPE'] = 'varchar',
-			['COLUMN_TYPE'] = 'varchar(50)',
-			['COLUMN_DEFAULT'] = "NULL",
-			['IS_NULLABLE'] = 'YES', -- YES | NO
-			['COLUMN_NAME'] = 'progress'
-		}
-	}
-}
-function checkExistingColumnType(table_name, column_name, column_data)
+function checkExistingColumnType(table_name, column_name, column_data, change_table_sqls)
 	if change_table_sqls[table_name] and change_table_sqls[table_name][column_name] then
 		local change_table_sql = change_table_sqls[table_name][column_name]
 		local is_outdated = false

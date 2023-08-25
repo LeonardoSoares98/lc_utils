@@ -178,23 +178,20 @@ function Utils.Framework.givePlayerItem(source,item,amount)
 			return false
 		end
 	else
-		-- If you set the config to other, you must configure here your export to give player item
-		-- Must return true if the item was sent to player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.givePlayerItem(source,item,amount)
 	end
 	return false
 end
 
-function Utils.Framework.givePlayerWeapon(source,item,amount)
+function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	local ammo = 0
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
-			return exports['ox_inventory']:AddItem(source, item, amount)
+			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
 		end
 	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
-		return exports['qs-inventory']:AddItem(source, item, amount)
+		return exports['qs-inventory']:AddItem(source, item, amount, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
@@ -205,10 +202,18 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 			return false
 		end
 	else
-		-- If you set the config to other, you must configure here your export to give player item
-		-- Must return true if the item was sent to player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.givePlayerWeapon(source,item,amount)
+	end
+	return false
+end
+
+function Utils.Framework.givePlayerWeapon(source,item,amount)
+	if Config.custom_scripts_compatibility.mdt == "ps-mdt" then
+		error("ps-mdt not available for ESX")
+	elseif Config.custom_scripts_compatibility.mdt == "default" then
+		return Utils.Framework.insertWeaponInInventory(source,item,amount)
+	else
+		return Utils.CustomScripts.createWeaponInMdt(source,item,amount)
 	end
 	return false
 end
@@ -243,10 +248,7 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 			return false
 		end
 	else
-		-- If you set the config to other, you must configure here your export to remove player item
-		-- Must return true if the item was removed from player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.getPlayerItem(source,item,amount)
 	end
 end
 
@@ -271,10 +273,7 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 			return false
 		end
 	else
-		-- If you set the config to other, you must configure here your export to remove player item
-		-- Must return true if the item was removed from player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.getPlayerWeapon(source,item,amount)
 	end
 end
 
@@ -413,4 +412,20 @@ function Utils.Framework.generatePlate(plate_format)
 		generatedPlate = Utils.Framework.generatePlate(plateFormat)
 	end
 	return generatedPlate
+end
+
+function Utils.Framework.getTopTruckers()
+	local sql = [[SELECT U.lastname as name, U.firstname, T.user_id, T.exp, T.traveled_distance 
+		FROM trucker_users T 
+		INNER JOIN users U ON (T.user_id = U.identifier)
+		WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
+	return Utils.Database.fetchAll(sql,{});
+end
+
+function Utils.Framework.getpartyMembers(party_id)
+	local sql = [[SELECT U.lastname as name, U.firstname, P.* 
+		FROM `trucker_party_members` P
+		INNER JOIN users U ON (P.user_id = U.identifier)
+		WHERE party_id = @party_id]];
+	return Utils.Database.fetchAll(sql,{['@party_id'] = party_id});
 end

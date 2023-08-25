@@ -123,15 +123,12 @@ function Utils.Framework.givePlayerItem(source,item,amount)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		return xPlayer.Functions.AddItem(item, amount)
 	else
-		-- If you set the config to other, you must configure here your export to give player item
-		-- Must return true if the item was sent to player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.givePlayerItem(source,item,amount)
 	end
 	return false
 end
 
-local function insertWeaponInInventory(source,item,amount,metadata)
+function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
 			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
@@ -143,10 +140,7 @@ local function insertWeaponInInventory(source,item,amount,metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		return exports['qb-inventory']:AddItem(source, item, amount, nil, metadata)
 	else
-		-- If you set the config to other, you must configure here your export to give player weapon
-		-- Must return true if the weapon was sent to player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.givePlayerWeapon(source,item,amount)
 	end
 	return false
 end
@@ -160,19 +154,16 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 		local owner = xPlayer.PlayerData.charinfo.firstname .. " " .. xPlayer.PlayerData.charinfo.lastname
 		local weapClass = 1
 		local weapModel = QBCore.Shared.Items[item].label
-		if insertWeaponInInventory(source,item,amount,{serie = serial}) then
+		if Utils.Framework.insertWeaponInInventory(source,item,amount,{serie = serial}) then
 			exports['ps-mdt']:CreateWeaponInfo(serial, imageurl, notes, owner, weapClass, weapModel)
 			TriggerClientEvent('QBCore:Notify', source, 'Weapon Registered', 'success')
 			return true
 		end
 		return false
 	elseif Config.custom_scripts_compatibility.mdt == "default" then
-		return insertWeaponInInventory(source,item,amount)
+		return Utils.Framework.insertWeaponInInventory(source,item,amount)
 	else
-		-- If you set the config to other, you must configure here your mdt export
-		-- Must return true if the weapon was sent to player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the mdt you set in Config: ^1"..Config.custom_scripts_compatibility.mdt.."^3. If you dont use any of the pre-built mdts, you must implement it here^7")
+		return Utils.CustomScripts.createWeaponInMdt(source,item,amount)
 	end
 end
 
@@ -204,10 +195,7 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 			return false
 		end
 	else
-		-- If you set the config to other, you must configure here your export to remove player item
-		-- Must return true if the item was removed from player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.getPlayerItem(source,item,amount)
 	end
 end
 
@@ -230,10 +218,7 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 			return false
 		end
 	else
-		-- If you set the config to other, you must configure here your export to remove player item
-		-- Must return true if the item was removed from player or false if not
-		-- Remove the error line below
-		error("^3Function not implemented for the inventory you set in Config: ^1"..Config.custom_scripts_compatibility.inventory.."^3. If you dont use any of the pre-built inventories, you must implement it here^7")
+		return Utils.CustomScripts.getPlayerWeapon(source,item,amount)
 	end
 end
 
@@ -355,4 +340,29 @@ function Utils.Framework.generatePlate(plate_format)
 		generatedPlate = Utils.Framework.generatePlate(plateFormat)
 	end
 	return generatedPlate
+end
+
+-- Trucker
+function Utils.Framework.getTopTruckers()
+	local sql = [[SELECT U.name, U.charinfo, T.user_id, T.exp, T.traveled_distance 
+		FROM trucker_users T 
+		INNER JOIN players U ON (T.user_id = U.citizenid)
+		WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
+	local result = Utils.Database.fetchAll(sql,{});
+	for k,v in ipairs(result) do
+		result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+	end
+	return result
+end
+
+function Utils.Framework.getpartyMembers(party_id)
+	local sql = [[SELECT U.name, U.charinfo, P.* 
+		FROM `trucker_party_members` P
+		INNER JOIN players U ON (P.user_id = U.citizenid)
+		WHERE party_id = @party_id]];
+	local result = Utils.Database.fetchAll(sql,{['@party_id'] = party_id});
+	for k,v in ipairs(result) do
+		result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+	end
+	return result
 end

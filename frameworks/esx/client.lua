@@ -12,9 +12,7 @@ function Utils.Framework.giveVehicleKeys(vehicle, plate, model)
 	elseif Config.custom_scripts_compatibility.keys == "default" then
 		-- As far as I know, the ESX doesnt have a default key script
 	else
-		-- If you set the config to other, you must configure here your export to give vehicle keys
-		-- Remove the error line below
-		error("^3Function not implemented for the keys script you set in Config: ^1"..Config.custom_scripts_compatibility.keys.."^3. If you dont use any of the pre-built keys script, you must implement it here^7")
+		Utils.CustomScripts.giveVehicleKeys(vehicle, plate, model)
 	end
 end
 
@@ -24,9 +22,7 @@ function Utils.Framework.removeVehicleKeys(vehicle)
 	if Config.custom_scripts_compatibility.keys == "qs-vehiclekeys" then
 		exports['qs-vehiclekeys']:RemoveKeys(plate, model)
 	else
-		-- If you set the config to other, you must configure here your export to remove vehicle keys if needed
-		-- Remove the error line below
-		error("^3Function not implemented for the keys script you set in Config: ^1"..Config.custom_scripts_compatibility.keys.."^3. If you dont use any of the pre-built keys script, you must implement it here^7")
+		Utils.CustomScripts.removeVehicleKeys(vehicle)
 	end
 end
 
@@ -40,8 +36,6 @@ function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "default" then
 		SetVehicleFuelLevel(vehicle, fuel + 0.0)
 	else
-		-- If you set the config to other, you must configure here your export to set vehicle fuel
-		-- Remove the error line below
-		error("^3Function not implemented for the fuel script you set in Config: ^1"..Config.custom_scripts_compatibility.fuel.."^3. If you dont use any of the pre-built fuel scripts, you must implement it here^7")
+		Utils.CustomScripts.setVehicleFuel(vehicle, plate, model, fuel)
 	end
 end

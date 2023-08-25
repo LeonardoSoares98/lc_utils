@@ -2,9 +2,10 @@ Utils = {}
 Utils.Debug = {}
 Utils.Table = {}
 Utils.Math = {}
+Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = Lang
-Utils.Version = '1.0.3'
+Utils.Version = '1.0.4'
 
 exports('GetUtils', function()
 	return Utils
@@ -235,9 +236,53 @@ function Utils.translate(key)
 end
 
 Citizen.CreateThread(function()
-	Wait(100)
+	Wait(1000)
+
+	print("^2["..GetCurrentResourceName().."] Loaded! Support discord: https://discord.gg/U5YDgbh ^3[v"..Utils.Version.."]^7")
+
 	assert(Config, "^3You have errors in your config file, consider fixing it or redownload the original config.^7")
 	assert(Config.framework == "QBCore" or Config.framework == "ESX", string.format("^3The Config.framework must be set to ^1ESX^3 or ^1QBCore^3, its actually set to ^1%s^3.^7", Config.framework))
 
-	print("^2["..GetCurrentResourceName().."] Loaded! Support discord: https://discord.gg/U5YDgbh ^3[v"..Utils.Version.."]^7")
+	local configs_to_validate = {
+		{ config_path = {"custom_scripts_compatibility"}, default_value = {	['fuel'] = "default", ['inventory'] = "default", ['keys'] = "default", ['mdt'] = "default", ['target'] = "disabled", ['notification'] = "default"} },
+		{ config_path = {"custom_scripts_compatibility", "notification"}, default_value = "default" }
+	}
+	Utils.validateConfig(Config, configs_to_validate)
 end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Config validator
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.validateConfig(_Config, configs_to_validate)
+	for _, v in pairs(configs_to_validate) do
+		local config_entry = getConfigEntry(_Config, v.config_path)
+
+		if config_entry == nil then
+			printMissingConfigMessage("Config."..table.concat(v.config_path, "."))
+			setConfigValue(_Config, v.config_path, v.default_value)
+		end
+	end
+end
+
+function getConfigEntry(_Config, path)
+	for _, key in ipairs(path) do
+		_Config = _Config and _Config[key]
+	end
+	return _Config
+end
+
+function setConfigValue(_Config, path, value)
+	for i = 1, #path - 1 do
+		if _Config[path[i]] == nil then
+			_Config[path[i]] = {}
+		end
+		_Config = _Config[path[i]]
+	end
+	_Config[path[#path]] = value
+end
+
+function printMissingConfigMessage(config_entry)
+	local resource = GetInvokingResource() or GetCurrentResourceName()
+	print("^3 ["..resource.."] WARNING: Missing config '^1" .. config_entry .. "^3'. The value will be set to its default. Consider redownloading the original config to obtain the correct config.^7")
+end

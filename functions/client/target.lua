@@ -40,7 +40,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 			},
 			distance = 2.5
 		})
-	elseif  Config.custom_scripts_compatibility.target == 'other' then
-		-- Put here your own target export
+	else
+		Utils.CustomScripts.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id)
 	end
 end

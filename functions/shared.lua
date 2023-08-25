@@ -247,7 +247,7 @@ Citizen.CreateThread(function()
 		{ config_path = {"custom_scripts_compatibility"}, default_value = {	['fuel'] = "default", ['inventory'] = "default", ['keys'] = "default", ['mdt'] = "default", ['target'] = "disabled", ['notification'] = "default"} },
 		{ config_path = {"custom_scripts_compatibility", "notification"}, default_value = "default" }
 	}
-	Utils.validateConfig(Config, configs_to_validate)
+	Config = Utils.validateConfig(Config, configs_to_validate)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -263,6 +263,7 @@ function Utils.validateConfig(_Config, configs_to_validate)
 			setConfigValue(_Config, v.config_path, v.default_value)
 		end
 	end
+	return _Config
 end
 
 function getConfigEntry(_Config, path)

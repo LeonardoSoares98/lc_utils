@@ -230,10 +230,14 @@ function Utils.Vehicles.setVehicleProperties(vehicle, props)
 
 	if props.bodyHealth then
 		SetVehicleBodyHealth(vehicle, props.bodyHealth + 0.0)
+	else
+		SetVehicleBodyHealth(vehicle, 1000.0)
 	end
 
 	if props.engineHealth then
 		SetVehicleEngineHealth(vehicle, props.engineHealth + 0.0)
+	else
+		SetVehicleEngineHealth(vehicle, 1000.0)
 	end
 
 	if props.tankHealth then
@@ -242,6 +246,8 @@ function Utils.Vehicles.setVehicleProperties(vehicle, props)
 
 	if props.fuelLevel then
 		SetVehicleFuelLevel(vehicle, props.fuelLevel + 0.0)
+	else
+		SetVehicleFuelLevel(vehicle, 100.0)
 	end
 
 	if props.oilLevel then

@@ -285,5 +285,5 @@ end
 
 function printMissingConfigMessage(config_entry)
 	local resource = GetInvokingResource() or GetCurrentResourceName()
-	print("^3 ["..resource.."] WARNING: Missing config '^1" .. config_entry .. "^3'. The value will be set to its default. Consider redownloading the original config to obtain the correct config.^7")
+	print("^3WARNING: Missing config '^1" .. config_entry .. "^3' in resource '^1"..resource.."^3'. The value will be set to its default. Consider redownloading the original config to obtain the correct config.^7")
 end

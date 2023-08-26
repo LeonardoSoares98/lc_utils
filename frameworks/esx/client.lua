@@ -21,6 +21,8 @@ function Utils.Framework.removeVehicleKeys(vehicle)
 	local plate = GetVehicleNumberPlateText(vehicle)
 	if Config.custom_scripts_compatibility.keys == "qs-vehiclekeys" then
 		exports['qs-vehiclekeys']:RemoveKeys(plate, model)
+	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" then
+		-- Do nothing :)
 	else
 		Utils.CustomScripts.removeVehicleKeys(vehicle)
 	end

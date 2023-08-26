@@ -6,7 +6,7 @@ function Utils.Framework.giveVehicleKeys(vehicle, plate, model)
 	if Config.custom_scripts_compatibility.keys == "qs-vehiclekeys" then
 		exports['qs-vehiclekeys']:GiveKeys(plate, model)
 	elseif Config.custom_scripts_compatibility.keys == "cd_garage" then
-		TriggerEvent('cd_garage:AddKeys', exports['cd_garage']:getPlate(vehicle))
+		TriggerEvent('cd_garage:AddKeys', exports['cd_garage']:GetPlate(vehicle))
 	elseif Config.custom_scripts_compatibility.keys == "jaksam" then
 		TriggerServerEvent("vehicles_keys:selfGiveVehicleKeys", plate)
 	elseif Config.custom_scripts_compatibility.keys == "default" then

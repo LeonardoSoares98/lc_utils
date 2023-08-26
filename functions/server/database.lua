@@ -44,7 +44,7 @@ function Utils.Database.validateTableColumns(tables, add_column_sqls, change_tab
 end
 
 function fixMissingColumn(table_name, column_name, add_column_sqls)
-	if add_column_sqls[table_name] and add_column_sqls[table_name][column_name] then
+	if add_column_sqls and add_column_sqls[table_name] and add_column_sqls[table_name][column_name] then
 		Utils.Database.execute(add_column_sqls[table_name][column_name])
 	else
 		error("^1["..GetInvokingResource().."]^3 The table^1"..table.."^3 has some missing columns. Please, delete this table \"^1"..table.."^3\" and restart the server.^7")
@@ -52,7 +52,7 @@ function fixMissingColumn(table_name, column_name, add_column_sqls)
 end
 
 function checkExistingColumnType(table_name, column_name, column_data, change_table_sqls)
-	if change_table_sqls[table_name] and change_table_sqls[table_name][column_name] then
+	if change_table_sqls and change_table_sqls[table_name] and change_table_sqls[table_name][column_name] then
 		local change_table_sql = change_table_sqls[table_name][column_name]
 		local is_outdated = false
 		for k, v in pairs(column_data) do

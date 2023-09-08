@@ -1,4 +1,5 @@
 Utils.Vehicles = {}
+local generatedPlates = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- SpawnVehicle functions
@@ -8,6 +9,7 @@ function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 	assert(Utils.Entity.isPlayerNearCoords(x,y,z,424.0),("^3Resource ^1%s^3 Tried to spawn vehicle on the client but the position is too far away (Out of onesync range).^7"):format(GetInvokingResource() or "Unknown"))
 	assert(properties, "Vehicle properties are null")
 	assert(properties.plate, "Vehicle properties must have at least properties.plate")
+	properties.fuelLevel = properties.fuelLevel or 100.0
 
 	local model_hash = GetHashKey(model)
 	loadModel(model_hash)
@@ -20,10 +22,7 @@ function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 	SetVehRadioStation(vehicle, 'OFF')
 
 	Utils.Vehicles.setVehicleProperties(vehicle, properties)
-	if properties.fuelLevel then
-		Utils.Framework.setVehicleFuel(vehicle, properties.plate, model, properties.fuelLevel + 0.0)
-	end
-
+	Utils.Framework.setVehicleFuel(vehicle, properties.plate, model, properties.fuelLevel + 0.0)
 	Utils.Framework.giveVehicleKeys(vehicle, properties.plate, model)
 
 	SetModelAsNoLongerNeeded(model_hash)
@@ -34,8 +33,13 @@ function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 end
 
 function Utils.Vehicles.deleteVehicle(vehicle)
-	SetEntityAsMissionEntity(vehicle, true, true)
-	DeleteVehicle(vehicle)
+	if IsEntityAVehicle(vehicle) then
+		local plate = Utils.Vehicles.getPlate(vehicle)
+		if plate then generatedPlates[plate] = nil end
+		Utils.Framework.removeVehicleKeys(vehicle)
+		SetEntityAsMissionEntity(vehicle, true, true)
+		DeleteVehicle(vehicle)
+	end
 end
 
 function loadModel(model)
@@ -53,6 +57,30 @@ end
 function Utils.Vehicles.getPlate(vehicle)
 	if vehicle == 0 then return end
 	return Utils.Math.trim(GetVehicleNumberPlateText(vehicle))
+end
+
+function Utils.Vehicles.generateTempVehiclePlate(prefix)
+	assert(#prefix <= 8, "Plate prefix is too long: '" .. prefix .. "' (maximum 8 characters allowed)")
+
+	local remainingChars = 8 - #prefix
+	local maxAttempts = 1000
+
+	for _ = 1, maxAttempts do
+		local randomChars = ""
+		for i = 1, remainingChars do
+			local randomNumber = tostring(math.random(0, 9))
+			randomChars = randomChars .. randomNumber
+		end
+
+		local plate = prefix .. randomChars
+
+		if not generatedPlates[plate] then
+			generatedPlates[plate] = true
+			return plate
+		end
+	end
+
+	error("Failed to generate a unique plate for the prefix: '" ..prefix.. "'")
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------

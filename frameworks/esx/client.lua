@@ -7,10 +7,14 @@ function Utils.Framework.giveVehicleKeys(vehicle, plate, model)
 		exports['qs-vehiclekeys']:GiveKeys(plate, model)
 	elseif Config.custom_scripts_compatibility.keys == "cd_garage" then
 		TriggerEvent('cd_garage:AddKeys', exports['cd_garage']:GetPlate(vehicle))
+	elseif Config.custom_scripts_compatibility.keys == "wasabi_carlock" then
+		local class = GetVehicleClass(vehicle) == 20
+        if not class then return end -- Wasabi does not support giving keys to trailers? why?
+		exports['wasabi_carlock']:GiveKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "jaksam" then
 		TriggerServerEvent("vehicles_keys:selfGiveVehicleKeys", plate)
 	elseif Config.custom_scripts_compatibility.keys == "default" then
-		-- As far as I know, the ESX doesnt have a default key script
+		-- As far as I know, the ESX dont have a default key script
 	else
 		Utils.CustomScripts.giveVehicleKeys(vehicle, plate, model)
 	end
@@ -18,9 +22,11 @@ end
 
 function Utils.Framework.removeVehicleKeys(vehicle)
 	local model = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
-	local plate = GetVehicleNumberPlateText(vehicle)
+	local plate = Utils.Vehicles.getPlate(vehicle)
 	if Config.custom_scripts_compatibility.keys == "qs-vehiclekeys" then
 		exports['qs-vehiclekeys']:RemoveKeys(plate, model)
+	elseif Config.custom_scripts_compatibility.keys == "wasabi_carlock" then
+		exports['wasabi_carlock']:RemoveKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" then
 		-- Do nothing :)
 	else

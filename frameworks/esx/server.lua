@@ -337,6 +337,15 @@ function Utils.Framework.playerOwnVehicle(user_id,plate)
 	end
 end
 
+function Utils.Framework.isOwnedVehicle(plate)
+	local vehiclequery = Utils.Database.fetchAll("SELECT owner as user_id FROM owned_vehicles WHERE plate = @vehicle_plate", {['@vehicle_plate'] = plate})
+	if vehiclequery[1] then
+		return vehiclequery[1].user_id
+	else
+		return false
+	end
+end
+
 function Utils.Framework.deleteOwnedVehicle(user_id,plate)
 	local sql = "DELETE FROM `owned_vehicles` WHERE owner = @user_id AND plate = @plate";
 	Utils.Database.execute(sql, {['@user_id'] = user_id, ['@plate'] = plate});

@@ -37,6 +37,8 @@ function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 		Entity(vehicle).state.fuel = fuel
 	elseif Config.custom_scripts_compatibility.fuel == "ps-fuel" then
 		exports['ps-fuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "cdn-fuel" then
+		exports['cdn-fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "LegacyFuel" then
 		exports['LegacyFuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "default" then

@@ -47,7 +47,7 @@ function fixMissingColumn(table_name, column_name, add_column_sqls)
 	if add_column_sqls and add_column_sqls[table_name] and add_column_sqls[table_name][column_name] then
 		Utils.Database.execute(add_column_sqls[table_name][column_name])
 	else
-		error("^1["..GetInvokingResource().."]^3 The table^1"..table.."^3 has some missing columns. Please, delete this table \"^1"..table.."^3\" and restart the server.^7")
+		error("^1["..GetInvokingResource().."]^3 The table ^1"..table_name.."^3 has some missing columns. Please, delete this table \"^1"..table_name.."^3\" and restart the server.^7")
 	end
 end
 

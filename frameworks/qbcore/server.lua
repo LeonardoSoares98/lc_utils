@@ -101,6 +101,10 @@ function Utils.Framework.hasJobs(source,jobs)
 	return false
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Items
+-----------------------------------------------------------------------------------------------------------------------------------------
+
 function Utils.Framework.getPlayerInventory(source)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	local player_inventory = {}
@@ -129,6 +133,7 @@ function Utils.Framework.givePlayerItem(source,item,amount)
 end
 
 function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
+	local xPlayer = QBCore.Functions.GetPlayer(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
 			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
@@ -138,9 +143,9 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		return exports['ps-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
-		return exports['qb-inventory']:AddItem(source, item, amount, nil, metadata)
+		return xPlayer.Functions.AddItem(item, amount, nil, metadata)
 	else
-		return Utils.CustomScripts.givePlayerWeapon(source,item,amount)
+		return Utils.CustomScripts.givePlayerWeapon(source,item,amount,metadata)
 	end
 	return false
 end
@@ -231,85 +236,150 @@ function Utils.Framework.hasWeaponLicense(source)
 	end
 end
 
-function Utils.Framework.givePlayerVehicle(source,vehicle,vehicle_type,plate_format,vehicleProps)
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Vehicles
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
-	local plate = vehicleProps and vehicleProps.plate or Utils.Framework.generatePlate(plate_format)
-	local mods = vehicleProps and vehicleProps or '{}'
-	if vehicle_type == "boat" then
-		-- Edit here how the script should insert the boats in your garage
-		Utils.Database.execute('INSERT INTO player_vehicles (license, citizenid, plate, vehicle, hash, mods, garage, state) VALUES (@license, @citizenid, @plate, @vehicle, @hash, @mods, @garage, @state)',
-		{
-			['@license'] = xPlayer.PlayerData.license,
-			['@citizenid'] = xPlayer.PlayerData.citizenid,
-			['@plate'] = plate,
-			['@state'] = 1, -- 1 = inside garage | 0 = outside garage
-			['@vehicle'] = vehicle,
-			['@hash'] = GetHashKey(vehicle),
-			['@garage'] = Config.owned_vehicles.garage,
-			['@mods'] = json.encode(mods)
-		})
-	elseif vehicle_type == "airplane" then
-		-- Edit here how the script should insert the airplanes in your garage
-		Utils.Database.execute('INSERT INTO player_vehicles (license, citizenid, plate, vehicle, hash, mods, garage, state) VALUES (@license, @citizenid, @plate, @vehicle, @hash, @mods, @garage, @state)',
-		{
-			['@license'] = xPlayer.PlayerData.license,
-			['@citizenid'] = xPlayer.PlayerData.citizenid,
-			['@plate'] = plate,
-			['@state'] = 1, -- 1 = inside garage | 0 = outside garage
-			['@vehicle'] = vehicle,
-			['@hash'] = GetHashKey(vehicle),
-			['@garage'] = Config.owned_vehicles.garage,
-			['@mods'] = json.encode(mods)
-		})
-	else
-		-- Normal vehicles
-		Utils.Database.execute('INSERT INTO player_vehicles (license, citizenid, plate, vehicle, hash, mods, garage, state) VALUES (@license, @citizenid, @plate, @vehicle, @hash, @mods, @garage, @state)',
-		{
-			['@license'] = xPlayer.PlayerData.license,
-			['@citizenid'] = xPlayer.PlayerData.citizenid,
-			['@plate'] = plate,
-			['@state'] = 1, -- 1 = inside garage | 0 = outside garage
-			['@vehicle'] = vehicle,
-			['@hash'] = GetHashKey(vehicle),
-			['@garage'] = Config.owned_vehicles.garage,
-			['@mods'] = json.encode(mods)
-		})
+	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
+	local mods = vehicle_props and vehicle_props or {}
+	local state = state or 0
+	local finance_details = finance_details or {}
+	local vehicle_type = vehicle_type or 'car'
+	local garage = Config.owned_vehicles['default'].garage
+	if Config.owned_vehicles[vehicle_type] then
+		garage = Config.owned_vehicles[vehicle_type].garage
 	end
+	Utils.Database.execute('INSERT INTO player_vehicles (license, citizenid, plate, vehicle, hash, mods, garage, state, balance, paymentamount, paymentsleft, financetime) VALUES (@license, @citizenid, @plate, @vehicle, @hash, @mods, @garage, @state, @balance, @paymentamount, @paymentsleft, @financetime)',
+	{
+		['@license'] = xPlayer.PlayerData.license,
+		['@citizenid'] = xPlayer.PlayerData.citizenid,
+		['@plate'] = plate,
+		['@state'] = state, -- 1 = inside garage | 0 = outside garage
+		['@vehicle'] = vehicle,
+		['@hash'] = GetHashKey(vehicle),
+		['@garage'] = garage,
+		['@mods'] = json.encode(mods),
+		['@balance'] = finance_details.balance,
+		['@paymentamount'] = finance_details.paymentamount,
+		['@paymentsleft'] = finance_details.paymentsleft,
+		['@financetime'] = finance_details.financetime
+	})
 	return true
 end
 
-function Utils.Framework.playerOwnVehicle(user_id,plate)
-	local sql = "SELECT 1 FROM `player_vehicles` WHERE citizenid = @user_id AND plate = @plate";
-	local query = Utils.Database.fetchAll(sql, {['@user_id'] = user_id, ['@plate'] = plate});
-	if query and query[1] then
-		return true
+function Utils.Framework.getVehiclesData(plate, user_id, query_data)
+	query_data = query_data or {}
+	local sql = "SELECT citizenid as user_id, vehicle, plate, balance, paymentamount, paymentsleft, financetime FROM `player_vehicles` WHERE 1=1";
+	local params = {}
+
+	if plate then
+		sql = sql .. " AND plate = @plate"
+		params['@plate'] = plate
+	end
+
+	if user_id then
+		sql = sql .. " AND citizenid = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	if query_data.only_financed_vehicles then
+		sql = sql .. " AND balance > 0"
+	end
+
+	return Utils.Database.fetchAll(sql, params)
+end
+
+function Utils.Framework.updateVehicleData(plate, user_id, vehicle_data)
+	if not vehicle_data or vehicle_data == {} then return end
+	assert(plate, "plate cannot be null")
+	assert(next(vehicle_data) ~= nil, "vehicle_data table must have at least one element")
+
+	local sql = "UPDATE `player_vehicles` SET ";
+
+	local params = {
+		['@plate'] = plate
+	}
+
+	if vehicle_data.balance then
+		sql = sql .. "balance = @balance, "
+		params['@balance'] = vehicle_data.balance
+	end
+
+	if vehicle_data.paymentamount then
+		sql = sql .. "paymentamount = @paymentamount, "
+		params['@paymentamount'] = vehicle_data.paymentamount
+	end
+
+	if vehicle_data.paymentsleft then
+		sql = sql .. "paymentsleft = @paymentsleft, "
+		params['@paymentsleft'] = vehicle_data.paymentsleft
+	end
+
+	if vehicle_data.financetime then
+		sql = sql .. "financetime = @financetime, "
+		params['@financetime'] = vehicle_data.financetime
+	end
+
+	sql = sql:sub(1, -3)
+
+	sql = sql .. " WHERE plate = @plate"
+
+	if user_id then
+		sql = sql .. " AND citizenid = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	Utils.Database.execute(sql, params);
+end
+
+function Utils.Framework.deleteOwnedVehicle(plate, user_id)
+	assert(plate, "plate cannot be null")
+	local sql = "DELETE FROM `player_vehicles` WHERE plate = @plate"
+
+	local params = {
+		['@plate'] = plate
+	}
+
+	if user_id then
+		sql = sql .. " AND citizenid = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	Utils.Database.execute(sql, params)
+end
+
+function Utils.Framework.deductFinanceTimeFromPlayerVehicles(user_id, financetime)
+	local sql = "UPDATE player_vehicles SET financetime = financetime - @financetime WHERE citizenid = @user_id AND balance > 0";
+	Utils.Database.execute(sql, {['@user_id'] = user_id, ['@financetime'] = financetime});
+end
+
+function Utils.Framework.getVehicleDataByPlates(plates)
+	local plate_str = table.concat(plates, "','")
+	local sql = ("SELECT citizenid as user_id, vehicle, plate, balance, paymentamount, paymentsleft, financetime FROM `player_vehicles` WHERE plate IN('%s')"):format(plate_str);
+	local query = Utils.Database.fetchAll(sql, {});
+	return query
+end
+
+function Utils.Framework.getVehicleOwner(plate)
+	local query = Utils.Database.fetchAll("SELECT citizenid as user_id FROM player_vehicles WHERE `plate` = @plate", {['@plate'] = plate})
+	if query[1] then
+		return query[1].user_id
 	else
 		return false
 	end
 end
+Utils.Framework.isOwnedVehicle = Utils.Framework.getVehicleOwner -- Adv. vehicles
 
-function Utils.Framework.isOwnedVehicle(plate)
-	local vehiclequery = Utils.Database.fetchAll("SELECT citizenid as user_id FROM player_vehicles WHERE `plate` = @vehicle_plate", {['@vehicle_plate'] = plate})
-	if vehiclequery[1] then
-		return vehiclequery[1].user_id
-	else
-		return false
-	end
-end
-
-function Utils.Framework.deleteOwnedVehicle(user_id,plate)
-	local sql = "DELETE FROM `player_vehicles` WHERE citizenid = @user_id AND plate = @plate";
-	Utils.Database.execute(sql, {['@user_id'] = user_id, ['@plate'] = plate});
-end
-
-function Utils.Framework.dontAskMeWhatIsThis(user_id,vehList)
+function Utils.Framework.dontAskMeWhatIsThis(user_id)
 	local sql = [[
-		SELECT O.citizenid, O.vehicle, O.plate, R.price, R.id, R.status
+		SELECT O.vehicle, O.plate, R.price, R.id, R.status
 		FROM `player_vehicles` O
 		LEFT JOIN `dealership_requests` R ON R.plate = O.plate
 		WHERE O.citizenid = @user_id OR R.user_id = @user_id AND R.request_type = 0
 			UNION
-		SELECT O.citizenid, R.vehicle, R.plate, R.price, R.id, R.status
+		SELECT R.vehicle, R.plate, R.price, R.id, R.status
 		FROM `player_vehicles` O
 		RIGHT JOIN `dealership_requests` R ON R.plate = O.plate
 		WHERE O.citizenid = @user_id OR R.user_id = @user_id AND R.request_type = 0
@@ -351,7 +421,10 @@ function Utils.Framework.generatePlate(plate_format)
 	return generatedPlate
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- Trucker
+-----------------------------------------------------------------------------------------------------------------------------------------
+
 function Utils.Framework.getTopTruckers()
 	local sql = [[SELECT U.name, U.charinfo, T.user_id, T.exp, T.traveled_distance 
 		FROM trucker_users T 

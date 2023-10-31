@@ -8,13 +8,18 @@ Utils.translate = function (key) {
 		locale = 'en';
 	}
 
-	const langObj = Lang[locale];
-	if (!langObj.hasOwnProperty(key)) {
-		console.warn(`Translation key '${key}' not found for language '${locale}'.`);
-		return 'missing_translation';
+	let langObj = Lang[locale];
+	const keys = key.split('.');
+
+	for (const k of keys) {
+		if (!langObj.hasOwnProperty(k)) {
+			console.warn(`Translation key '${key}' not found for language '${locale}'.`);
+			return 'missing_translation';
+		}
+		langObj = langObj[k];
 	}
 
-	return langObj[key];
+	return langObj;
 }
 
 Utils.setLocale = function (current_locale) {
@@ -108,32 +113,49 @@ Utils.getCurrencySymbol = function () {
 	return new Intl.NumberFormat(locale, options).format(0).replace(/\d/g, '').trim();
 };
 
-Utils.post = async function (event, data, route = 'post', cb) {
-	try {
-		const response = await fetch(Utils.getRoute(route), {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ event, data }),
-		});
+const requestQueue = [];
+let isProcessing = false;
 
-		if (!response.ok) {
-			throw new Error(`Request failed with status: ${response.status}`);
-		}
+const processQueue = async () => {
+	if (!isProcessing && requestQueue.length > 0) {
+		isProcessing = true;
+		const { event, data, route, cb } = requestQueue.shift();
+		try {
+			const response = await fetch(Utils.getRoute(route), {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ event, data }),
+			});
 
-		const responseData = await response.json();
-
-		if (cb) {
-			cb(responseData);
-		} else {
-			if (responseData !== 200) {
-				console.log(responseData);
+			if (!response.ok) {
+				throw new Error(`Request failed with status: ${response.status}`);
 			}
+
+			const responseData = await response.json();
+
+			if (cb) {
+				cb(responseData);
+			} else {
+				if (responseData !== 200) {
+					console.log(responseData);
+				}
+			}
+		} catch (error) {
+			console.error(`Error occurred while making a POST request with event: "${event}", data: "${JSON.stringify(data)}", and route: "${route}": ${error.message}`);
+		} finally {
+			isProcessing = false;
+			setTimeout(function() {
+				processQueue();
+			}, 200);
 		}
-	} catch (error) {
-		console.error('Error:', error.message);
 	}
+};
+
+Utils.post = function (event, data, route = 'post', cb) {
+	requestQueue.push({ event, data, route, cb });
+	processQueue();
 };
 
 let resource_name
@@ -155,19 +177,20 @@ const modalTemplate = `
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body">
-					<p></p>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-outline-primary" data-dismiss="modal"></button>
-					<button type="button" class="btn btn-primary"></button>
-				</div>
+				<form id="form-confirmation-modal" style="margin: 0;">
+					<div class="modal-body">
+						
+					</div>
+					<div class="modal-footer">
+						
+					</div>
+				</form>
 			</div>
 		</div>
 	</div>
 `;
 
-Utils.showDefaultModal = function (action, body = null) {
+Utils.showDefaultModal = function (action, body = Utils.translate('confirmation_modal_body')) {
 	Utils.showCustomModal({
 		title: Utils.translate('confirmation_modal_title'),
 		body,
@@ -178,7 +201,7 @@ Utils.showDefaultModal = function (action, body = null) {
 	})
 }
 
-Utils.showDefaultDangerModal = function (action, body = null) {
+Utils.showDefaultDangerModal = function (action, body = Utils.translate('confirmation_modal_body')) {
 	Utils.showCustomModal({
 		title: Utils.translate('confirmation_modal_title'),
 		body,
@@ -188,15 +211,75 @@ Utils.showDefaultDangerModal = function (action, body = null) {
 		]
 	})
 }
-
+/*
+const exampleConfig = {
+	title: 'Custom Modal Title',
+	body: 'Custom Modal Body Text',
+	buttons: [
+		{ text: 'Cancel', class: 'btn btn-outline-primary', dismiss: true },
+		{ text: 'Confirm', class: 'btn btn-primary', dismiss: false, action: () => console.log('Confirmed') }
+	],
+	inputs: [
+		{
+			type: 'text', // Input type: text
+			label: 'Text Input:',
+			small: 'Small text',
+			id: 'text-input-id',
+			name: 'text-input-name',
+			value: 'xxxx',
+			required: true,
+			placeholder: 'Enter text here'
+		},
+		{
+			type: 'number', // Input type: number
+			label: 'Number Input:',
+			small: 'Small text',
+			id: 'number-input-id',
+			name: 'number-input-name',
+			value: 10,
+			min: 0,
+			max: 10,
+			required: true,
+			placeholder: 'Enter a number'
+		},
+		{
+			type: 'custom',
+			html: `
+				<div class="d-flex>
+					// custom html
+				</div>
+			`
+		},
+		{
+			type: 'select', // Input type: select
+			label: 'Select Input:',
+			id: 'select-input-id',
+			name: 'select-input-name',
+			required: true,
+			options: [
+				{ value: 'option1', text: 'Option 1' },
+				{ value: 'option2', text: 'Option 2' },
+				{ value: 'option3', text: 'Option 3' }
+			]
+		}
+	],
+	onSubmit: function(inputValues) {
+		console.log("Form submitted with input values:", inputValues);
+		// You can perform further actions with the input values here
+	}
+};
+*/
 Utils.showCustomModal = function (config) {
+	// Check if the modal already exists
+	const $existingModal = $('#confirmation-modal');
+	if ($existingModal.length > 0) {
+		return;
+	}
+
 	const modalConfig = {
 		title: Utils.translate('confirmation_modal_title'),
-		body: Utils.translate('confirmation_modal_body'),
-		buttons: [
-			{ text: Utils.translate('confirmation_modal_cancel_button'), class: "btn btn-outline-primary", dismiss: true },
-			{ text: Utils.translate('confirmation_modal_confirm_button'), class: "btn btn-primary", dismiss: true, action: () => console.log("No action was defined in this click") }
-		]
+		buttons: [],
+		inputs: []
 	};
 
 	// Merge the provided config with the default modalConfig
@@ -208,23 +291,103 @@ Utils.showCustomModal = function (config) {
 
 	// Cache the modal element
 	const $modal = $('#confirmation-modal');
+	const $modalBody = $modal.find('.modal-body');
 
 	// Set modal content
 	$modal.find('.modal-title').text(mergedConfig.title);
-	$modal.find('.modal-body p').text(mergedConfig.body);
-	
+
+	if (mergedConfig.bodyImage) {
+		const $imageContainer = $('<div>', { class: 'd-flex justify-content-center m-2' });
+		const $image = $('<img>', { src: mergedConfig.bodyImage, class: 'w-50' });
+		$imageContainer.append($image);
+		$modalBody.append($imageContainer);
+	}
+
+	if (mergedConfig.body) {
+		const $p = $('<p>', { id: 'modal-body-text', text: mergedConfig.body });
+		$modalBody.append($p);
+	}
+
+	if (mergedConfig.bodyHtml) {
+		$modalBody.append(mergedConfig.bodyHtml);
+	}
+
+	// Set modal inputs
+	const $form = $modal.find('#form-confirmation-modal');
+	mergedConfig.inputs.forEach(inputConfig => {
+		const $inputContainer = $('<div>', { class: 'form-group mx-2' });
+		
+		if (inputConfig.type === 'select') {
+			const $label = $('<label>', { text: inputConfig.label, for: inputConfig.id });
+			const $select = $('<select>', { class: 'form-control', id: inputConfig.id, name: inputConfig.name, required: inputConfig.required });
+			if (!Array.isArray(inputConfig.options)) {
+				inputConfig.options = Object.values(inputConfig.options)
+			}
+			inputConfig.options.forEach(option => {
+				const $option = $('<option>', { value: option.value, text: option.text });
+				$select.append($option);
+			});
+			$inputContainer.append($label, $select);
+		} else if (inputConfig.type === 'checkbox') {
+			const $checkboxContainer = $('<div>', { class: 'form-check' });
+			const $label = $('<label>', { for: inputConfig.id, class: 'form-check-label' });
+			const $input = $('<input>', { type: 'checkbox', class: 'form-check-input', id: inputConfig.id, name: inputConfig.name, required: inputConfig.required });
+			$label.text(inputConfig.label);
+			$inputContainer.append($checkboxContainer.append($input, $label));
+		} else if (inputConfig.type === 'slider' || inputConfig.type === 'range') {
+			const $label = $('<label>', { text: inputConfig.label, for: inputConfig.id });
+			if (!inputConfig.default) {
+				inputConfig.default = inputConfig.max ?? 100
+			}
+			let range_slider = `
+				<div class="range-slider mt-2" style='--min:${inputConfig.min || 0}; --max:${inputConfig.max || 100}; --step:${inputConfig.step || 1}; --value:${inputConfig.default}; --text-value:"${inputConfig.default}"; --prefix:"${inputConfig.isCurrency ? Utils.getCurrencySymbol() : ''} ";'>
+					<input id="${inputConfig.id}" name="${inputConfig.name}" type="range" min="${inputConfig.min || 0}" max="${inputConfig.max || 100}" step="${inputConfig.step || 1}" value="${inputConfig.default}" oninput="this.parentNode.style.setProperty('--value',this.value); this.parentNode.style.setProperty('--text-value', JSON.stringify(this.value))">
+					<output></output>
+					<div class='range-slider__progress'></div>
+				</div>`
+			$inputContainer.append($label, range_slider);
+		} else if (inputConfig.type === 'custom') {
+			const $customInput = $(inputConfig.html);
+			$inputContainer.append($customInput);
+		} else {
+			const $label = $('<label>', { text: inputConfig.label, for: inputConfig.id });
+			const $input = $('<input>', { type: inputConfig.type, class: 'form-control', id: inputConfig.id, name: inputConfig.name, required: inputConfig.required, placeholder: inputConfig.placeholder, min: inputConfig.min, max: inputConfig.max, value: inputConfig.value });
+			$inputContainer.append($label, $input);
+		}
+		if (inputConfig.small) {
+			const $small = $('<small>', { text: inputConfig.small, class: 'text-muted', style: 'font-size: 12px;' });
+			$inputContainer.append($small);
+		}
+		$modalBody.append($inputContainer);
+	});
+
+	if (mergedConfig.footerText) {
+		const $p = $('<p>', { id: 'modal-footer-text', text: mergedConfig.footerText });
+		$modalBody.append($p);
+	}
+
 	// Set modal buttons
 	const $footer = $modal.find('.modal-footer');
 	$footer.empty();
 	mergedConfig.buttons.forEach(button => {
-		const $button = $('<button>', { class: button.class, text: button.text });
+		const $button = $('<button>', { class: button.class, text: button.text, type: button.type ?? 'button' });
 		if (button.dismiss) {
 			$button.attr('data-dismiss', 'modal');
-		} 
+		}
 		if (button.action) {
 			$button.on('click', button.action);
 		}
 		$footer.append($button);
+	});
+
+	// Set modal form submit
+	$form.on('submit', function (e) {
+		e.preventDefault();
+
+		if (config.onSubmit) {
+			config.onSubmit(new FormData(e.target));
+		}
+		$modal.modal('hide');
 	});
 
 	// Show the modal
@@ -234,7 +397,7 @@ Utils.showCustomModal = function (config) {
 	$modal.on('hidden.bs.modal', function () {
 		setTimeout(() => {
 			$(this).remove();
-		}, 50)
+		}, 50);
 	});
 };
 
@@ -330,8 +493,10 @@ $(function () {
 	});
 
 	document.onkeyup = function(data){
-		if (data.which == 27){
-			if ($(".main").is(":visible")){
+		if (data.key == 'Escape'){
+			if ($("#confirmation-modal").is(":visible")){
+				$('#confirmation-modal').modal('hide');
+			} else if ($(".main").is(":visible")){
 				$(".modal").modal('hide');
 				Utils.post("close","")
 			}

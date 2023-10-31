@@ -62,13 +62,13 @@ function Utils.Markers.drawText2D(text,font,x,y,scale,r,g,b,a)
 	EndTextCommandDisplayText(x,y)
 end
 
-function Utils.Markers.createMarkerInCoords(market_id,x,y,z,marker_text,onControlIsPressedCallback)
+function Utils.Markers.createMarkerInCoords(location_id,x,y,z,marker_text,onControlIsPressedCallback,callbackData)
 	local distance = #(GetEntityCoords(PlayerPedId()) - vector3(x,y,z))
 	Utils.Markers.drawMarker(21,x,y,z)
 	if distance <= 1.0 then
 		Utils.Markers.drawText3D(x,y,z-0.6, marker_text)
 		if IsControlJustPressed(0,38) then
-			onControlIsPressedCallback(market_id)
+			onControlIsPressedCallback(location_id,callbackData)
 		end
 	end
 end

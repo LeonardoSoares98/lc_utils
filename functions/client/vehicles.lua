@@ -10,6 +10,8 @@ function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 	assert(properties, "Vehicle properties are null")
 	assert(properties.plate, "Vehicle properties must have at least properties.plate")
 	properties.fuelLevel = properties.fuelLevel or 100.0
+	properties.engineHealth = properties.engineHealth or 1000.0
+	properties.bodyHealth = properties.bodyHealth or 1000.0
 
 	local model_hash = GetHashKey(model)
 	loadModel(model_hash)
@@ -27,18 +29,32 @@ function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 
 	SetModelAsNoLongerNeeded(model_hash)
 
-	local blip = Utils.Blips.createBlipForEntity(vehicle,blip_data.name,blip_data.sprite,blip_data.color)
+	local blip
+	if blip_data and blip_data.name then
+		blip = Utils.Blips.createBlipForEntity(vehicle,blip_data.name,blip_data.sprite,blip_data.color)
+	end
 
+	generatedPlates[properties.plate] = vehicle
 	return vehicle,blip
 end
 
 function Utils.Vehicles.deleteVehicle(vehicle)
+	local plate = removePlateInGeneratedPlatesFromVehicle(vehicle)
 	if IsEntityAVehicle(vehicle) then
-		local plate = Utils.Vehicles.getPlate(vehicle)
-		if plate then generatedPlates[plate] = nil end
 		Utils.Framework.removeVehicleKeys(vehicle)
 		SetEntityAsMissionEntity(vehicle, true, true)
 		DeleteVehicle(vehicle)
+	elseif plate then
+		Utils.Framework.removeVehicleKeysFromPlate(plate)
+	end
+end
+
+function removePlateInGeneratedPlatesFromVehicle(vehicle)
+	for k, v in pairs(generatedPlates) do
+		if v == vehicle then
+			generatedPlates[k] = nil
+			return k
+		end
 	end
 end
 
@@ -81,6 +97,11 @@ function Utils.Vehicles.generateTempVehiclePlate(prefix)
 	end
 
 	error("Failed to generate a unique plate for the prefix: '" ..prefix.. "'")
+end
+
+function Utils.Vehicles.removeKeysFromPlate(plate,model)
+	generatedPlates[plate] = nil
+	Utils.Framework.removeVehicleKeysFromPlate(plate,model)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -287,20 +308,20 @@ function Utils.Vehicles.setVehicleProperties(vehicle, props)
 	end
 
 	if props.color1 then
-		if type(props.color1) == 'number' then
-			ClearVehicleCustomPrimaryColour(vehicle)
-			SetVehicleColours(vehicle, props.color1 --[[@as number]], colorSecondary --[[@as number]])
-		else
+		if type(props.color1) == 'table' then
 			SetVehicleCustomPrimaryColour(vehicle, props.color1[1], props.color1[2], props.color1[3])
+		else
+			ClearVehicleCustomPrimaryColour(vehicle)
+			SetVehicleColours(vehicle, tonumber(props.color1) --[[@as number]], tonumber(props.color2) or colorSecondary --[[@as number]])
 		end
 	end
 
 	if props.color2 then
-		if type(props.color2) == 'number' then
-			ClearVehicleCustomPrimaryColour(vehicle)
-			SetVehicleColours(vehicle, props.color1 or colorPrimary --[[@as number]], props.color2 --[[@as number]])
-		else
+		if type(props.color2) == 'table' then
 			SetVehicleCustomSecondaryColour(vehicle, props.color2[1], props.color2[2], props.color2[3])
+		else
+			ClearVehicleCustomPrimaryColour(vehicle)
+			SetVehicleColours(vehicle, tonumber(props.color1) or colorPrimary --[[@as number]], tonumber(props.color2) --[[@as number]])
 		end
 	end
 
@@ -584,7 +605,7 @@ function Utils.Vehicles.setVehicleProperties(vehicle, props)
 	end
 
 	if props.driftTyres then
-		SetDriftTyresEnabled(vehicle, true)
+		-- SetDriftTyresEnabled(vehicle, true)
 	end
 
 	return true

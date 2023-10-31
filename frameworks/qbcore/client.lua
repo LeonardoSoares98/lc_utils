@@ -32,6 +32,18 @@ function Utils.Framework.removeVehicleKeys(vehicle)
 	end
 end
 
+function Utils.Framework.removeVehicleKeysFromPlate(plate,model)
+	if Config.custom_scripts_compatibility.keys == "qs-vehiclekeys" then
+		exports['qs-vehiclekeys']:RemoveKeys(plate, model)
+	elseif Config.custom_scripts_compatibility.keys == "wasabi_carlock" then
+		exports['wasabi_carlock']:RemoveKey(plate)
+	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" then
+		-- Do nothing :)
+	else
+		Utils.CustomScripts.removeVehicleKeysFromPlate(plate,model)
+	end
+end
+
 function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 	if Config.custom_scripts_compatibility.fuel == "ox_fuel" then
 		Entity(vehicle).state.fuel = fuel

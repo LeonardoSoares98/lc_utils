@@ -5,7 +5,7 @@ Utils.Math = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = Lang
-Utils.Version = '1.0.7'
+Utils.Version = '1.0.8'
 
 exports('GetUtils', function()
 	return Utils
@@ -245,7 +245,30 @@ Citizen.CreateThread(function()
 
 	local configs_to_validate = {
 		{ config_path = {"custom_scripts_compatibility"}, default_value = {	['fuel'] = "default", ['inventory'] = "default", ['keys'] = "default", ['mdt'] = "default", ['target'] = "disabled", ['notification'] = "default"} },
-		{ config_path = {"custom_scripts_compatibility", "notification"}, default_value = "default" }
+		{ config_path = {"custom_scripts_compatibility", "notification"}, default_value = "default" },
+		{ config_path = {"owned_vehicles", "default"}, default_value = { ['garage'] = 'motelgarage', ['garage_display_name'] = 'Motel Parking' } },
+		{ config_path = {"spawned_vehicles"}, default_value = {
+			['lc_truck_logistics'] = {
+				['is_static'] = false,
+				['plate_prefix'] = "TR"
+			},
+			['lc_stores'] = {
+				['is_static'] = false,
+				['plate_prefix'] = "ST"
+			},
+			['lc_gas_stations'] = {
+				['is_static'] = false,
+				['plate_prefix'] = "GS"
+			},
+			['lc_dealership'] = {
+				['is_static'] = false,
+				['plate_prefix'] = "DE"
+			},
+			['lc_factories'] = {
+				['is_static'] = false,
+				['plate_prefix'] = "FA"
+			}
+		} },
 	}
 	Config = Utils.validateConfig(Config, configs_to_validate)
 end)

@@ -1,6 +1,6 @@
 Utils.Target = {}
 
-function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id)
+function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)
 	if Config.custom_scripts_compatibility.target == 'ox_target' then
 		exports['ox_target']:addSphereZone({
 			coords = vector3(x,y,z),
@@ -13,7 +13,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 					label = labelText,
 					distance = 2.5,
 					onSelect = function()
-						onSelectTargetOptionCallback(location_id)
+						onSelectTargetOptionCallback(location_id,callbackData)
 					end,
 				}
 			}
@@ -32,7 +32,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 			options = {
 				{
 					action = function()
-						onSelectTargetOptionCallback(location_id)
+						onSelectTargetOptionCallback(location_id,callbackData)
 					end,
 					icon = icon,
 					label = labelText

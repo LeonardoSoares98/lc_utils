@@ -130,8 +130,8 @@ end
 function Utils.Framework.getPlayerInventory(source)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local inventory = {}
-	for k, v in pairs(xPlayer.inventory) do
-		if v.count > 0 then
+	for k, v in pairs(xPlayer.getInventory()) do
+		if v.count and v.count > 0 then
 			table.insert(inventory, {amount = v.count, name = v.name})
 		end
 	end
@@ -195,12 +195,8 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
-		if canStoreItemInInventory(source,item,amount) then
-			xPlayer.addWeapon(item, ammo)
-			return true
-		else
-			return false
-		end
+		xPlayer.addWeapon(item, ammo)
+		return true
 	else
 		return Utils.CustomScripts.givePlayerWeapon(source,item,amount)
 	end
@@ -292,66 +288,157 @@ function Utils.Framework.hasWeaponLicense(source)
 	return hasLicense
 end
 
-function Utils.Framework.givePlayerVehicle(source,vehicle,vehicle_type,plate_format,vehicleProps)
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Vehicles
+-----------------------------------------------------------------------------------------------------------------------------------------
+local vehList = {}
+function Utils.Framework.setvehList(l)
+	vehList = l
+end
+
+function Utils.Framework.getVehicleModelFromVehicleColumn(vehicle)
+	local vehicleProps = json.decode(vehicle)
+	return vehList[vehicleProps.model] or "CARNOTFOUND"
+end
+
+function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	local plate = vehicleProps and vehicleProps.plate or Utils.Framework.generatePlate(plate_format)
-	local mods = vehicleProps and vehicleProps or '{}'
-	if vehicle_type == "boat" then
-		-- Edit here how the script should insert the boats in your garage
-		Utils.Database.execute('INSERT INTO owned_vehicles (owner, plate, vehicle, type) VALUES (@owner, @plate, @vehicle, @type)',
-		{
-			['@owner']   = xPlayer.identifier,
-			['@plate']   = plate,
-			['@vehicle'] = json.encode(mods),
-			['@type'] = 'boat',
-		})
-	elseif vehicle_type == "airplane" then
-		-- Edit here how the script should insert the airplanes in your garage
-		Utils.Database.execute('INSERT INTO owned_vehicles (owner, plate, vehicle, type) VALUES (@owner, @plate, @vehicle, @type)',
-		{
-			['@owner']   = xPlayer.identifier,
-			['@plate']   = plate,
-			['@vehicle'] = json.encode(mods),
-			['@type'] = 'boat',
-		})
-	else
-		-- Normal vehicles
-		Utils.Database.execute('INSERT INTO owned_vehicles (owner, plate, vehicle, type) VALUES (@owner, @plate, @vehicle, @type)',
-		{
-			['@owner']   = xPlayer.identifier,
-			['@plate']   = plate,
-			['@vehicle'] = json.encode(mods),
-			['@type'] = 'boat',
-		})
+	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
+	local mods = vehicle_props and vehicle_props or {}
+	local state = state or 0
+	local finance_details = finance_details or {}
+	local vehicle_type = vehicle_type or 'car'
+	local garage = Config.owned_vehicles['default'].garage
+	if Config.owned_vehicles[vehicle_type] then
+		garage = Config.owned_vehicles[vehicle_type].garage
 	end
+	Utils.Database.execute('INSERT INTO owned_vehicles (owner, plate, vehicle, type, stored, parking, balance, paymentamount, paymentsleft, financetime) VALUES (@owner, @plate, @vehicle, @type, @stored, @parking, @balance, @paymentamount, @paymentsleft, @financetime)',
+	{
+		['@owner']   = xPlayer.identifier,
+		['@plate']   = plate,
+		['@vehicle'] = json.encode(mods),
+		['@stored'] = state, -- 1 = inside garage | 0 = outside garage
+		['@type'] = vehicle_type,
+		['@parking'] = garage,
+		['@balance'] = finance_details.balance,
+		['@paymentamount'] = finance_details.paymentamount,
+		['@paymentsleft'] = finance_details.paymentsleft,
+		['@financetime'] = finance_details.financetime
+	})
 	return true
 end
 
-function Utils.Framework.playerOwnVehicle(user_id,plate)
-	local sql = "SELECT 1 FROM `owned_vehicles` WHERE owner = @user_id AND plate = @plate";
-	local query = Utils.Database.fetchAll(sql, {['@user_id'] = user_id, ['@plate'] = plate});
-	if query and query[1] then
-		return true
+function Utils.Framework.getVehiclesData(plate, user_id, query_data)
+	query_data = query_data or {}
+	local sql = "SELECT owner as user_id, vehicle, plate, balance, paymentamount, paymentsleft, financetime FROM `owned_vehicles` WHERE 1=1";
+	local params = {}
+
+	if plate then
+		sql = sql .. " AND plate = @plate"
+		params['@plate'] = plate
+	end
+
+	if user_id then
+		sql = sql .. " AND owner = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	if query_data.only_financed_vehicles then
+		sql = sql .. " AND balance > 0"
+	end
+
+	local query = Utils.Database.fetchAll(sql, params)
+	for k, v in pairs(query) do
+		query[k].vehicle = Utils.Framework.getVehicleModelFromVehicleColumn(v.vehicle)
+	end
+	return query
+end
+
+function Utils.Framework.updateVehicleData(plate, user_id, vehicle_data)
+	if not vehicle_data or vehicle_data == {} then return end
+	assert(plate, "plate cannot be null")
+	assert(next(vehicle_data) ~= nil, "vehicle_data table must have at least one element")
+
+	local sql = "UPDATE `owned_vehicles` SET ";
+
+	local params = {
+		['@plate'] = plate
+	}
+
+	if vehicle_data.balance then
+		sql = sql .. "balance = @balance, "
+		params['@balance'] = vehicle_data.balance
+	end
+
+	if vehicle_data.paymentamount then
+		sql = sql .. "paymentamount = @paymentamount, "
+		params['@paymentamount'] = vehicle_data.paymentamount
+	end
+
+	if vehicle_data.paymentsleft then
+		sql = sql .. "paymentsleft = @paymentsleft, "
+		params['@paymentsleft'] = vehicle_data.paymentsleft
+	end
+
+	if vehicle_data.financetime then
+		sql = sql .. "financetime = @financetime, "
+		params['@financetime'] = vehicle_data.financetime
+	end
+
+	sql = sql:sub(1, -3)
+
+	sql = sql .. " WHERE plate = @plate"
+
+	if user_id then
+		sql = sql .. " AND owner = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	Utils.Database.execute(sql, params);
+end
+
+function Utils.Framework.deleteOwnedVehicle(plate, user_id)
+	assert(plate, "plate cannot be null")
+	local sql = "DELETE FROM `owned_vehicles` WHERE plate = @plate"
+
+	local params = {
+		['@plate'] = plate
+	}
+
+	if user_id then
+		sql = sql .. " AND owner = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	Utils.Database.execute(sql, params)
+end
+
+function Utils.Framework.deductFinanceTimeFromPlayerVehicles(user_id, financetime)
+	local sql = "UPDATE owned_vehicles SET financetime = financetime - @financetime WHERE owner = @user_id AND balance > 0";
+	Utils.Database.execute(sql, {['@user_id'] = user_id, ['@financetime'] = financetime});
+end
+
+function Utils.Framework.getVehicleDataByPlates(plates)
+	local plate_str = table.concat(plates, "','")
+	local sql = ("SELECT owner as user_id, vehicle, plate, balance, paymentamount, paymentsleft, financetime FROM `owned_vehicles` WHERE plate IN('%s')"):format(plate_str);
+	local query = Utils.Database.fetchAll(sql, {});
+	for k, v in pairs(query) do
+		query[k].vehicle = Utils.Framework.getVehicleModelFromVehicleColumn(v.vehicle)
+	end
+	return query
+end
+
+function Utils.Framework.getVehicleOwner(plate)
+	local query = Utils.Database.fetchAll("SELECT owner as user_id FROM owned_vehicles WHERE plate = @plate", {['@plate'] = plate})
+	if query[1] then
+		return query[1].user_id
 	else
 		return false
 	end
 end
+Utils.Framework.isOwnedVehicle = Utils.Framework.getVehicleOwner -- Adv. vehicles
 
-function Utils.Framework.isOwnedVehicle(plate)
-	local vehiclequery = Utils.Database.fetchAll("SELECT owner as user_id FROM owned_vehicles WHERE plate = @vehicle_plate", {['@vehicle_plate'] = plate})
-	if vehiclequery[1] then
-		return vehiclequery[1].user_id
-	else
-		return false
-	end
-end
-
-function Utils.Framework.deleteOwnedVehicle(user_id,plate)
-	local sql = "DELETE FROM `owned_vehicles` WHERE owner = @user_id AND plate = @plate";
-	Utils.Database.execute(sql, {['@user_id'] = user_id, ['@plate'] = plate});
-end
-
-function Utils.Framework.dontAskMeWhatIsThis(user_id,vehList)
+function Utils.Framework.dontAskMeWhatIsThis(user_id)
 	local sql = [[
 		SELECT O.owner, O.vehicle, O.plate, R.price, R.id, R.status
 		FROM `owned_vehicles` O
@@ -368,7 +455,7 @@ function Utils.Framework.dontAskMeWhatIsThis(user_id,vehList)
 	local owned_vehicles = {}
 	for k,v in pairs(vehicles) do
 		if not v.id then -- Not in requests table
-			local vehicleProps = json.decode(v.vehicle)	
+			local vehicleProps = json.decode(v.vehicle)
 			local model = vehicleProps.model
 			table.insert(owned_vehicles, {model = model, plate = v.plate, price = v.price, id = v.id, status = v.status})
 		else
@@ -422,6 +509,10 @@ function Utils.Framework.generatePlate(plate_format)
 	end
 	return generatedPlate
 end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Trucker
+-----------------------------------------------------------------------------------------------------------------------------------------
 
 function Utils.Framework.getTopTruckers()
 	local sql = [[SELECT U.lastname as name, U.firstname, T.user_id, T.exp, T.traveled_distance 

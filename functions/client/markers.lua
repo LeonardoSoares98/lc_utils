@@ -62,8 +62,8 @@ function Utils.Markers.drawText2D(text,font,x,y,scale,r,g,b,a)
 	EndTextCommandDisplayText(x,y)
 end
 
-function Utils.Markers.createMarkerInCoords(location_id,x,y,z,marker_text,onControlIsPressedCallback,callbackData)
-	local distance = #(GetEntityCoords(PlayerPedId()) - vector3(x,y,z))
+function Utils.Markers.createMarkerInCoords(location_id,x,y,z,marker_text,onControlIsPressedCallback,callbackData,distance)
+	distance = distance or #(GetEntityCoords(PlayerPedId()) - vector3(x,y,z))
 	Utils.Markers.drawMarker(21,x,y,z)
 	if distance <= 1.0 then
 		Utils.Markers.drawText3D(x,y,z-0.6, marker_text)

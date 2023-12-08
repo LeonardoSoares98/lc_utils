@@ -75,6 +75,15 @@ function Utils.Vehicles.getPlate(vehicle)
 	return Utils.Math.trim(GetVehicleNumberPlateText(vehicle))
 end
 
+function Utils.Vehicles.generateTempVehiclePlateWithPrefix(resource)
+	config_spawned_vehicles = Config.spawned_vehicles[resource]
+	if config_spawned_vehicles.is_static then
+		return config_spawned_vehicles.plate_prefix
+	else
+		return Utils.Vehicles.generateTempVehiclePlate(config_spawned_vehicles.plate_prefix)
+	end
+end
+
 function Utils.Vehicles.generateTempVehiclePlate(prefix)
 	assert(#prefix <= 8, "Plate prefix is too long: '" .. prefix .. "' (maximum 8 characters allowed)")
 

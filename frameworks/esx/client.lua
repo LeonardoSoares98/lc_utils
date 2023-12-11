@@ -51,6 +51,8 @@ function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 		Entity(vehicle).state.fuel = fuel
 	elseif Config.custom_scripts_compatibility.fuel == "ps-fuel" then
 		error("ps-fuel not available for ESX")
+	elseif Config.custom_scripts_compatibility.fuel == "sna-fuel" or Config.custom_scripts_compatibility.fuel == "esx-sna-fuel" then
+		exports['esx-sna-fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "cdn-fuel" then
 		error("cdn-fuel not available for ESX")
 	elseif Config.custom_scripts_compatibility.fuel == "LegacyFuel" then

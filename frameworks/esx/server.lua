@@ -39,11 +39,17 @@ function Utils.Framework.getPlayerSource(user_id)
 end
 
 function Utils.Framework.getPlayerName(user_id)
-	local xPlayer = ESX.GetPlayerFromIdentifier(user_id)
-	if xPlayer then
-		return xPlayer.name
-	end
-	return false
+    local xPlayer = ESX.GetPlayerFromIdentifier(user_id)
+    if xPlayer then
+        return xPlayer.name
+    else
+        local sql = "SELECT firstname, lastname FROM `users` WHERE identifier = @user_id";
+        local query = MySQL.Sync.fetchAll(sql,{['@user_id'] = user_id});
+        if query and query[1] and query[1].firstname then
+            return query[1].firstname.." "..query[1].lastname
+        end
+    end
+    return false
 end
 
 function Utils.Framework.getOnlinePlayers()
@@ -320,10 +326,10 @@ function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate,
 		['@stored'] = state, -- 1 = inside garage | 0 = outside garage
 		['@type'] = vehicle_type,
 		['@parking'] = garage,
-		['@balance'] = finance_details.balance,
-		['@paymentamount'] = finance_details.paymentamount,
-		['@paymentsleft'] = finance_details.paymentsleft,
-		['@financetime'] = finance_details.financetime
+		['@balance'] = finance_details.balance or 0,
+		['@paymentamount'] = finance_details.paymentamount or 0,
+		['@paymentsleft'] = finance_details.paymentsleft or 0,
+		['@financetime'] = finance_details.financetime or 0
 	})
 	return true
 end

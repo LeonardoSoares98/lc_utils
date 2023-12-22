@@ -261,10 +261,10 @@ function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate,
 		['@hash'] = GetHashKey(vehicle),
 		['@garage'] = garage,
 		['@mods'] = json.encode(mods),
-		['@balance'] = finance_details.balance,
-		['@paymentamount'] = finance_details.paymentamount,
-		['@paymentsleft'] = finance_details.paymentsleft,
-		['@financetime'] = finance_details.financetime
+		['@balance'] = finance_details.balance or 0,
+		['@paymentamount'] = finance_details.paymentamount or 0,
+		['@paymentsleft'] = finance_details.paymentsleft or 0,
+		['@financetime'] = finance_details.financetime or 0
 	})
 	return true
 end

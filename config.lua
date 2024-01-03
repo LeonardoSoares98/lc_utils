@@ -8,7 +8,7 @@ Config.ESX_settings = {							-- (ESX Only) ESX settings
 	['esx_version'] = 'weight'					-- [weight|limit] Configure here if your inventory uses weight or limit
 }
 
-Config.locale = "en"							-- Set the file language [en/br/de/es/fr/zh-cn]
+Config.locale = "en"							-- Set the file language [en/br/de/es/no/fr/zh-cn]
 
 Config.format = {
 	['currency'] = 'USD',						-- This is the currency format, so that your currency symbol appears correctly [Examples: BRL, USD, EUR] (Currency codes: https://taxsummaries.pwc.com/glossary/currency-codes)
@@ -56,6 +56,7 @@ Config.owned_vehicles = {							-- (Only for the vehicles that will be inserted 
 	['plate_format'] = 'xxxxxxxx',					-- Plate generation format. [n = number | l = letter | x = any]
 	['default'] = {									-- The garage type
 		['garage'] = 'motelgarage',					-- This is the garage where the owned vehicles will be inserted
+		-- ['garage'] = 'SanAndreasAvenue', 		-- Default garage for ESX framework
 		['garage_display_name'] = 'Motel Parking'	-- Just a nice name to display to the user
 	},
 	['airplane'] = {

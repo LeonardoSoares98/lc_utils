@@ -72,3 +72,17 @@ function Utils.Markers.createMarkerInCoords(location_id,x,y,z,marker_text,onCont
 		end
 	end
 end
+
+function Utils.Markers.showHelpNotification(msg, thisFrame, beep, duration)
+	AddTextEntry('lcutilsHelpNotification', msg)
+
+	if thisFrame then
+		DisplayHelpTextThisFrame('lcutilsHelpNotification', false)
+	else
+		if beep == nil then
+			beep = true
+		end
+		BeginTextCommandDisplayHelp('lcutilsHelpNotification')
+		EndTextCommandDisplayHelp(0, false, beep, duration or -1)
+	end
+end

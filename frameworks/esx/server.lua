@@ -308,10 +308,11 @@ function Utils.Framework.getVehicleModelFromVehicleColumn(vehicle)
 end
 
 function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
+	Utils.Database.validateOwnedVehicleTableColumns("owned_vehicles")
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
-	local mods = vehicle_props and vehicle_props or {}
-	local state = state or 0
+	local mods = vehicle_props and vehicle_props or { model = joaat(vehicle), plate = plate, tankHealth = 1000.0, bodyHealth = 1000.0, engineHealth = 1000.0 }
+	local state = state or 1
 	local finance_details = finance_details or {}
 	local vehicle_type = vehicle_type or 'car'
 	local garage = Config.owned_vehicles['default'].garage

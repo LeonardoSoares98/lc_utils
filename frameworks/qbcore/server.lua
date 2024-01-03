@@ -241,6 +241,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
+	Utils.Database.validateOwnedVehicleTableColumns("player_vehicles")
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
 	local mods = vehicle_props and vehicle_props or {}

@@ -65,3 +65,30 @@ function checkExistingColumnType(table_name, column_name, column_data, change_ta
 		end
 	end
 end
+
+local wasValidated = false
+function Utils.Database.validateOwnedVehicleTableColumns(table_name)
+	if wasValidated then
+		return
+	end
+	local tables = {
+		[table_name] = {
+			"parking",
+			"balance",
+			"paymentamount",
+			"paymentsleft",
+			"financetime"
+		}
+	}
+	local add_column_sqls = {
+		[table_name] = {
+			['parking'] = "ALTER TABLE `"..table_name.."` ADD COLUMN `parking` VARCHAR(60) NULL DEFAULT NULL;",
+			['balance'] = "ALTER TABLE `"..table_name.."` ADD COLUMN `balance` INT(11) NOT NULL DEFAULT '0';",
+			['paymentamount'] = "ALTER TABLE `"..table_name.."` ADD COLUMN `paymentamount` INT(11) NOT NULL DEFAULT '0';",
+			['paymentsleft'] = "ALTER TABLE `"..table_name.."` ADD COLUMN `paymentsleft` INT(11) NOT NULL DEFAULT '0';",
+			['financetime'] = "ALTER TABLE `"..table_name.."` ADD COLUMN `financetime` INT(11) NOT NULL DEFAULT '0';",
+		}
+	}
+	Utils.Database.validateTableColumns(tables, add_column_sqls)
+	wasValidated = true
+end

@@ -308,7 +308,6 @@ function Utils.Framework.getVehicleModelFromVehicleColumn(vehicle)
 end
 
 function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
-	Utils.Database.validateOwnedVehicleTableColumns("owned_vehicles")
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
 	local mods = vehicle_props and vehicle_props or { model = joaat(vehicle), plate = plate, tankHealth = 1000.0, bodyHealth = 1000.0, engineHealth = 1000.0 }
@@ -536,3 +535,8 @@ function Utils.Framework.getpartyMembers(party_id)
 		WHERE party_id = @party_id]];
 	return Utils.Database.fetchAll(sql,{['@party_id'] = party_id});
 end
+
+Citizen.CreateThread(function()
+	Wait(2000)
+	Utils.Database.validateOwnedVehicleTableColumns("owned_vehicles")
+end)

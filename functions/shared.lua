@@ -5,7 +5,7 @@ Utils.Math = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = Lang
-Utils.Version = '1.0.12'
+Utils.Version = '1.0.13'
 
 exports('GetUtils', function()
 	return Utils

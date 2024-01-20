@@ -22,7 +22,7 @@ function Utils.Database.validateTableColumns(tables, add_column_sqls, change_tab
 			local sql = "SELECT "..columns_str.." FROM `"..table.."` LIMIT 1";
 			local query_2 = Utils.Database.fetchAll(sql,{});
 			if query_2 == nil then
-				error("^1["..GetInvokingResource().."]^3 The table^1"..table.."^3 has some missing columns. Please, delete this table \"^1"..table.."^3\" and restart the server.^7")
+				error("^1["..getResourceName().."]^3 The table^1"..table.."^3 has some missing columns. Please, delete this table \"^1"..table.."^3\" and restart the server.^7")
 			end
 		else
 			local sql = "SELECT COLUMN_TYPE, DATA_TYPE, COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE FROM `information_schema`.`COLUMNS` WHERE TABLE_SCHEMA = (SELECT DATABASE() AS default_schema) and TABLE_NAME='"..table.."' ORDER BY ORDINAL_POSITION;";
@@ -47,7 +47,7 @@ function fixMissingColumn(table_name, column_name, add_column_sqls)
 	if add_column_sqls and add_column_sqls[table_name] and add_column_sqls[table_name][column_name] then
 		Utils.Database.execute(add_column_sqls[table_name][column_name])
 	else
-		error("^1["..GetInvokingResource().."]^3 The table ^1"..table_name.."^3 has some missing columns. Please, delete this table \"^1"..table_name.."^3\" and restart the server.^7")
+		error("^1["..getResourceName().."]^3 The table ^1"..table_name.."^3 has some missing columns. Please, delete this table \"^1"..table_name.."^3\" and restart the server.^7")
 	end
 end
 

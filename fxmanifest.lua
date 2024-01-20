@@ -22,12 +22,13 @@ server_scripts {
 }
 
 shared_scripts {
-	"lang/*.lua",
 	"config.lua",
-	"functions/shared.lua"
+	"functions/shared.lua",
+	"lang/*.lua"
 }
 
 files {
+	"functions/loader.lua",
 	"nui/index.html",
 	"nui/index.js",
 	"nui/css/*"

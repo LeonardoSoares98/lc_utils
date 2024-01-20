@@ -20,7 +20,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 		})
 	elseif Config.custom_scripts_compatibility.target == 'qb-target' then
 		assert(Config.framework ~= "ESX", "qb-target not available for ESX")
-		local caller_resource = GetInvokingResource()
+		local caller_resource = getResourceName()
 		zone_id = caller_resource .. ":" .. (zone_id or location_id)
 		exports['qb-target']:AddBoxZone(zone_id, vector3(x,y,z), 2.5, 2.5, {
 			name = zone_id,

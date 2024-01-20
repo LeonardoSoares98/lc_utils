@@ -2,10 +2,11 @@ Utils = {}
 Utils.Debug = {}
 Utils.Table = {}
 Utils.Math = {}
+Utils.String = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
-Utils.Lang = Lang
-Utils.Version = '1.0.13'
+Utils.Lang = {}
+Utils.Version = '1.1.0'
 
 exports('GetUtils', function()
 	return Utils
@@ -138,6 +139,17 @@ function Utils.Table.deepCopy(orig)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- String
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.String.capitalizeFirst(str)
+	if str == nil or str == '' then
+		return str
+	end
+	return (str:sub(1, 1):upper() .. str:sub(2))
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- Math
 -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -203,14 +215,14 @@ end
 
 local cached_langs = {}
 function Utils.loadLanguageFile(lang_file)
-	local resource = GetInvokingResource()
+	local resource = getResourceName()
 	assert(resource,"^3Unknown resource loading the language files.^7")
 
 	cached_langs[resource] = lang_file
 end
 
 function Utils.translate(key)
-	local resource = GetInvokingResource()
+	local resource = getResourceName()
 	if not resource then
 		return 'missing_resource'
 	end
@@ -236,9 +248,10 @@ function Utils.translate(key)
 end
 
 Citizen.CreateThread(function()
+	if GetCurrentResourceName() ~= "lc_utils" then return end
 	Wait(1000)
 
-	print("^2["..GetCurrentResourceName().."] Loaded! Support discord: https://discord.gg/U5YDgbh ^3[v"..Utils.Version.."]^7")
+	print("^2[lc_utils] Loaded! Support discord: https://discord.gg/U5YDgbh ^3[v"..Utils.Version.."]^7")
 
 	assert(Config, "^3You have errors in your config file, consider fixing it or redownload the original config.^7")
 	assert(Config.framework == "QBCore" or Config.framework == "ESX", string.format("^3The Config.framework must be set to ^1ESX^3 or ^1QBCore^3, its actually set to ^1%s^3.^7", Config.framework))
@@ -307,6 +320,10 @@ function setConfigValue(_Config, path, value)
 end
 
 function printMissingConfigMessage(config_entry)
-	local resource = GetInvokingResource() or GetCurrentResourceName()
+	local resource = getResourceName()
 	print("^3WARNING: Missing config '^1" .. config_entry .. "^3' in resource '^1"..resource.."^3'. The value will be set to its default. Consider redownloading the original config to obtain the correct config.^7")
+end
+
+function getResourceName()
+	return string.match(GetInvokingResource() or "", "^lc_") and GetInvokingResource() or GetCurrentResourceName()
 end

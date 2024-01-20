@@ -6,7 +6,7 @@ local serverRequests = {}
 Utils.Callback.TriggerServerCallback = function(eventName, callback, ...)
 	serverRequests[RequestId] = callback
 
-	TriggerServerEvent('lc_utils:triggerServerCallback', eventName, RequestId, GetInvokingResource() or "unknown", ...)
+	TriggerServerEvent('lc_utils:triggerServerCallback', eventName, RequestId, getResourceName(), ...)
 
 	RequestId = RequestId + 1
 end

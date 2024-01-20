@@ -1,10 +1,10 @@
-Config = {}
+Config = Config or {}
 
 Config.framework = "QBCore"						-- [ESX|QBCore] Your framework
 
 Config.ESX_settings = {							-- (ESX Only) ESX settings
-	['is_updated'] = true,						-- Set to false if your ESX version is older than 1.9.0
-	['shared_object'] = "esx:getSharedObject",	-- GetSharedObject event for who uses an older version than 1.9.0
+	['is_updated'] = true,						-- Set to false if your ESX uses the getSharedObject event (usually for ESX versions older than 1.9.0)
+	['shared_object'] = "esx:getSharedObject",	-- GetSharedObject event if you set 'is_updated' config to false
 	['esx_version'] = 'weight'					-- [weight|limit] Configure here if your inventory uses weight or limit
 }
 

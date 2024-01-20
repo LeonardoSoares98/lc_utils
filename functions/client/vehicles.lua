@@ -6,7 +6,7 @@ local generatedPlates = {}
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
-	assert(Utils.Entity.isPlayerNearCoords(x,y,z,424.0),("^3Resource ^1%s^3 Tried to spawn vehicle on the client but the position is too far away (Out of onesync range).^7"):format(GetInvokingResource() or "Unknown"))
+	assert(Utils.Entity.isPlayerNearCoords(x,y,z,424.0),("^3Resource ^1%s^3 Tried to spawn vehicle on the client but the position is too far away (Out of onesync range).^7"):format(getResourceName()))
 	assert(properties, "Vehicle properties are null")
 	assert(properties.plate, "Vehicle properties must have at least properties.plate")
 	properties.fuelLevel = properties.fuelLevel or 100.0

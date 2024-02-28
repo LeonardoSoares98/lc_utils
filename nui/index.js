@@ -143,7 +143,7 @@ const processQueue = async () => {
 				}
 			}
 		} catch (error) {
-			console.error(`Error occurred while making a POST request with event: "${event}", data: "${JSON.stringify(data)}", and route: "${route}": ${error.message}`);
+			console.error(`Error occurred while making a POST request with event: "${event}", data: "${JSON.stringify(data)}", and route: "${Utils.getRoute(route)}": ${error.message}`);
 		} finally {
 			isProcessing = false;
 			setTimeout(function() {

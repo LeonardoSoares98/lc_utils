@@ -1,6 +1,6 @@
 fx_version 'cerulean'
 game 'gta5'
-author 'Lixeiro Charmoso#1104'
+author 'LixeiroCharmoso'
 
 ui_page "nui/index.html"
 

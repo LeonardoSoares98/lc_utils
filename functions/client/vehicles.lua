@@ -77,6 +77,14 @@ end
 
 function Utils.Vehicles.generateTempVehiclePlateWithPrefix(resource)
 	config_spawned_vehicles = Config.spawned_vehicles[resource]
+	if not config_spawned_vehicles then
+		print("^3WARNING: Missing config '^1Config.spawned_vehicles[" .. resource .. "]^3' in resource '^1lc_utils^3'. The value will be set to its default. Consider redownloading the original config to obtain the correct config.^7")
+		Config.spawned_vehicles[resource] = {
+			['is_static'] = false,
+			['plate_prefix'] = "TEMP"
+		}
+		config_spawned_vehicles = Config.spawned_vehicles[resource]
+	end
 	if config_spawned_vehicles.is_static then
 		return config_spawned_vehicles.plate_prefix
 	else

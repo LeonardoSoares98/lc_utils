@@ -23,7 +23,7 @@ function loadFile(filename)
 			fn()
 		end
 	else
-		error('Could not load file: ' .. dir)
+		error('Could not find file: ' ..resource .. '/' .. dir)
 	end
 end
 
@@ -66,4 +66,7 @@ elseif context == 'server' then
 	loadFile('custom_scripts/server/inventory.lua')
 	loadFile('custom_scripts/server/mdt.lua')
 end
-loadFile('lang/en.lua')
+loadFile('lang/'..Config.locale..'.lua')
+if Config.locale ~= 'en' then
+	loadFile('lang/en.lua')
+end

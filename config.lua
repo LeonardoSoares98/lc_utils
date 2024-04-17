@@ -49,6 +49,10 @@ Config.spawned_vehicles = {						-- Config for the vehicles that are spawned in 
 	['lc_factories'] = {
 		['is_static'] = false,
 		['plate_prefix'] = "FA"
+	},
+	['lc_taxi_business'] = {
+		['is_static'] = false,
+		['plate_prefix'] = "TA"
 	}
 }
 

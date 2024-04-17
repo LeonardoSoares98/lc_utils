@@ -39,17 +39,17 @@ function Utils.Framework.getPlayerSource(user_id)
 end
 
 function Utils.Framework.getPlayerName(user_id)
-    local xPlayer = ESX.GetPlayerFromIdentifier(user_id)
-    if xPlayer then
-        return xPlayer.name
-    else
-        local sql = "SELECT firstname, lastname FROM `users` WHERE identifier = @user_id";
-        local query = MySQL.Sync.fetchAll(sql,{['@user_id'] = user_id});
-        if query and query[1] and query[1].firstname then
-            return query[1].firstname.." "..query[1].lastname
-        end
-    end
-    return false
+	local xPlayer = ESX.GetPlayerFromIdentifier(user_id)
+	if xPlayer then
+		return xPlayer.name
+	else
+		local sql = "SELECT firstname, lastname FROM `users` WHERE identifier = @user_id";
+		local query = MySQL.Sync.fetchAll(sql,{['@user_id'] = user_id});
+		if query and query[1] and query[1].firstname then
+			return query[1].firstname.." "..query[1].lastname
+		end
+	end
+	return false
 end
 
 function Utils.Framework.getOnlinePlayers()
@@ -59,9 +59,9 @@ function Utils.Framework.getOnlinePlayers()
 		local xPlayers = ESX.GetExtendedPlayers()
 		for _, xPlayer in pairs(xPlayers) do
 			table.insert(online_players, {
-				source     = xPlayer.source,
-				identifier = xPlayer.identifier,
-				name       = xPlayer.name
+				source		= xPlayer.source,
+				identifier	= xPlayer.identifier,
+				name		= xPlayer.name
 			})
 		end
 	else
@@ -70,9 +70,9 @@ function Utils.Framework.getOnlinePlayers()
 		for i=1, #xPlayers, 1 do
 			local xPlayer = ESX.GetPlayerFromId(xPlayers[i])
 			table.insert(online_players, {
-				source     = xPlayer.source,
-				identifier = xPlayer.identifier,
-				name       = xPlayer.name
+				source		= xPlayer.source,
+				identifier	= xPlayer.identifier,
+				name		= xPlayer.name
 			})
 		end
 	end
@@ -191,6 +191,9 @@ end
 
 function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	local ammo = 0
+	if metadata and metadata.ammo then
+		ammo = metadata.ammo
+	end
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
@@ -307,9 +310,9 @@ function Utils.Framework.getVehicleModelFromVehicleColumn(vehicle)
 	return vehList[vehicleProps.model] or "CARNOTFOUND"
 end
 
-function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
+function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate_format, vehicle_props, state, finance_details)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
+	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate_format)
 	local mods = vehicle_props and vehicle_props or { model = joaat(vehicle), plate = plate, tankHealth = 1000.0, bodyHealth = 1000.0, engineHealth = 1000.0 }
 	local state = state or 1
 	local finance_details = finance_details or {}
@@ -320,8 +323,8 @@ function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate,
 	end
 	Utils.Database.execute('INSERT INTO owned_vehicles (owner, plate, vehicle, type, stored, parking, balance, paymentamount, paymentsleft, financetime) VALUES (@owner, @plate, @vehicle, @type, @stored, @parking, @balance, @paymentamount, @paymentsleft, @financetime)',
 	{
-		['@owner']   = xPlayer.identifier,
-		['@plate']   = plate,
+		['@owner'] = xPlayer.identifier,
+		['@plate'] = plate,
 		['@vehicle'] = json.encode(mods),
 		['@stored'] = state, -- 1 = inside garage | 0 = outside garage
 		['@type'] = vehicle_type,
@@ -504,7 +507,7 @@ function Utils.Framework.generatePlate(plate_format)
 				generatedPlate = generatedPlate .. a
 			end
 		else
-			generatedPlate = generatedPlate ..  string.upper(currentChar)
+			generatedPlate = generatedPlate .. string.upper(currentChar)
 		end
 	end
 	local isDuplicate = MySQL.Sync.fetchScalar('SELECT COUNT(1) FROM owned_vehicles WHERE plate = @plate', {

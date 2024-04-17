@@ -1,4 +1,4 @@
-# LC_Utils
+# LC_Utils - FiveM
 
 ## About
 This resource is designed to assist in implementing reusable code for scripts in the FiveM scripts from LixeiroCharmoso.

@@ -9,7 +9,7 @@ function Utils.Framework.giveVehicleKeys(vehicle, plate, model)
 		TriggerEvent('cd_garage:AddKeys', exports['cd_garage']:GetPlate(vehicle))
 	elseif Config.custom_scripts_compatibility.keys == "wasabi_carlock" then
 		local class = GetVehicleClass(vehicle) == 20
-        if not class then return end -- Wasabi does not support giving keys to trailers? why?
+		if not class then return end -- Wasabi does not support giving keys to trailers? why?
 		exports['wasabi_carlock']:GiveKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "jaksam" then
 		TriggerEvent("vehiclekeys:client:SetOwner", plate)

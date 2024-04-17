@@ -6,7 +6,7 @@ Utils.String = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = {}
-Utils.Version = '1.1.2'
+Utils.Version = '1.1.3'
 
 exports('GetUtils', function()
 	return Utils
@@ -162,6 +162,31 @@ function Utils.Math.round(value, numDecimalPlaces)
 	if not numDecimalPlaces then return math.floor(value + 0.5) end
 	local power = 10 ^ numDecimalPlaces
 	return math.floor((value * power) + 0.5) / (power)
+end
+
+function Utils.Math.weightedRandom(weights, shift)
+	local sum = 0
+	for _, weight in pairs(weights) do
+		sum = sum + weight
+	end
+
+	local threshold = math.random(0, sum) + (shift or 0)
+	local cumulative = 100
+	for number, weight in pairs(weights) do
+		cumulative = cumulative + weight
+		if threshold <= cumulative then
+			return number
+		end
+	end
+end
+
+function Utils.Math.getRandomKeyFromTable(tbl)
+	local keys = {}
+	for key in pairs(tbl) do
+		table.insert(keys, key)
+	end
+	local index = keys[math.random(1, #keys)]
+	return index
 end
 
 function Utils.Math.checkIfCurrentVersionisOutdated(latestVersion, curVersion)

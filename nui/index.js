@@ -70,9 +70,9 @@ Utils.loadLanguageModules = async function (utils_module) {
 	Utils.deepMerge(Lang,utils_module.lang)
 };
 
-Utils.timeConverter = function (UNIX_timestamp) {
+Utils.timeConverter = function (UNIX_timestamp, options = {}) {
 	const timestampMillis = UNIX_timestamp * 1000;
-	const formattedTime = new Date(timestampMillis).toLocaleString(locale);
+	const formattedTime = new Date(timestampMillis).toLocaleString(locale, options);
 
 	return formattedTime;
 };
@@ -430,27 +430,141 @@ if (!String.prototype.format) {
 	};
 }
 
-Utils.invalidMsg = function (textbox,min,max) {
-	if (textbox.value == '') {
-		textbox.setCustomValidity(Utils.translate('str_fill_field'));
+/**
+ * DEPRECATED: Use Utils.onInvalidInput(this) on input events instead.
+ */
+Utils.invalidMsg = function (textbox, min = null, max = null) {
+	textbox.setCustomValidity('');
+	if (textbox.value === '') {
+		textbox.setCustomValidity(Utils.translate('custom_validity.fill_field'));
 	}
-	else if(textbox.validity.typeMismatch){
-		textbox.setCustomValidity(Utils.translate('str_invalid_value'));
+	else if (textbox.validity.typeMismatch) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.invalid_value'));
 	}
-	else if(textbox.validity.rangeUnderflow){
-		textbox.setCustomValidity(Utils.translate('str_more_than').format(min));
+	else if (textbox.validity.rangeUnderflow && min !== null) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.more_than').format(min));
 	}
-	else if(textbox.validity.rangeOverflow){
-		textbox.setCustomValidity(Utils.translate('str_less_than').format(max));
+	else if (textbox.validity.rangeOverflow && max !== null) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.less_than').format(max));
 	}
-	else if(textbox.validity.stepMismatch){
-		textbox.setCustomValidity(Utils.translate('str_invalid_value'));
-	} else {
-		textbox.setCustomValidity('');
+	else if (textbox.validity.stepMismatch) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.invalid_value'));
+	}
+	else if (textbox.validity.patternMismatch) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.pattern_mismatch'));
+	}
+	else if (textbox.validity.tooLong) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.too_long'));
+	}
+	else if (textbox.validity.tooShort) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.too_short'));
 	}
 	textbox.reportValidity();
-	textbox.setCustomValidity('');
 	return true;
+}
+
+Utils.onInvalidInput = function (textbox) { // oninvalid="Utils.onInvalidInput(this)"
+	textbox.setCustomValidity('');
+	
+	const elementType = textbox.tagName.toLowerCase(); // 'input', 'select', 'textarea'
+	const inputType = elementType === 'input' ? textbox.type.toLowerCase() : elementType; // 'text', 'email', 'select', etc.
+
+	if (textbox.validity.valueMissing || textbox.value === '') {
+		if (inputType == 'select') { 
+			textbox.setCustomValidity(Utils.translate('custom_validity.select_fill_field'));
+		} else {
+			textbox.setCustomValidity(Utils.translate('custom_validity.fill_field'));
+		}
+	}
+	else if (textbox.validity.typeMismatch || textbox.validity.badInput) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.invalid_value'));
+	}
+	else if (textbox.validity.rangeUnderflow) {
+		const min = $(textbox).attr('min');
+		textbox.setCustomValidity(Utils.translate('custom_validity.more_than').format(Utils.numberFormat(min)));
+	}
+	else if (textbox.validity.rangeOverflow) {
+		const max = $(textbox).attr('max');
+		textbox.setCustomValidity(Utils.translate('custom_validity.less_than').format(Utils.numberFormat(max)));
+	}
+	else if (textbox.validity.stepMismatch) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.invalid_value'));
+	}
+	else if (textbox.validity.patternMismatch) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.pattern_mismatch'));
+	}
+	else if (textbox.validity.tooLong) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.too_long'));
+	}
+	else if (textbox.validity.tooShort) {
+		textbox.setCustomValidity(Utils.translate('custom_validity.too_short'));
+	}
+	return true;
+}
+
+/**
+ * Sorts an object or an array of objects based on specified property paths.
+ * If the input is an object, it converts it to an array of objects, including the original object's key as an `.id` property.
+ * @param {Object|Array} input - The object or array to sort.
+ * @param {Array|String} propertyPath - The path(s) to the property for sorting, can be a single path or an array of paths for multiple criteria.
+ * @param {Boolean} ascending - Whether the sorting should be in ascending order. Defaults to true.
+ * @returns {Array} - The sorted array of objects.
+ */
+Utils.sortElement = function(input, propertyPath, ascending = true) {
+	let arrayToSort = [];
+
+	// Convert input to an array of objects if it's not already one, including `.id`
+	if (!Array.isArray(input)) {
+		arrayToSort = Object.entries(input).map(([index, item]) => {
+			if (item !== null && (typeof item === 'object' || Array.isArray(item))) {
+				return { ...item, id: item.id || index };
+			} else {
+				return { value: item, id: index };
+			}
+		});
+	} else {
+		arrayToSort = input.map((item, index) => ({
+			...item,
+			id: item.id || index
+		}));
+	}
+
+	// Convert propertyPath to an array if it's not already one
+	if (!Array.isArray(propertyPath)) {
+		propertyPath = [propertyPath];
+	}
+
+	// A helper function to safely access nested properties
+	const resolvePath = (object, path) => {
+		return path.split('.').reduce((accumulator, currentValue) => {
+			return accumulator ? accumulator[currentValue] : undefined;
+		}, object);
+	};
+
+	// The sorting function
+	return arrayToSort.sort((a, b) => {
+		for (let i = 0; i < propertyPath.length; i++) {
+			const aValue = resolvePath(a, propertyPath[i]);
+			const bValue = resolvePath(b, propertyPath[i]);
+	
+			if (typeof aValue === 'string' && typeof bValue === 'string') {
+				const comparison = aValue.localeCompare(bValue);
+				if (comparison !== 0) return ascending ? comparison : -comparison;
+			} else {
+				if (aValue < bValue) return ascending ? -1 : 1;
+				if (aValue > bValue) return ascending ? 1 : -1;
+			}
+		}
+		return 0; // if all criteria are equal
+	});	
+}
+
+Utils.convertFileToBase64 = function (file, callback) {
+	const reader = new FileReader();
+	reader.onload = function(e) {
+		callback(e.target.result);
+	};
+	reader.readAsDataURL(file);
 }
 
 $(function () {

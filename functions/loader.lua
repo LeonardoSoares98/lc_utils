@@ -60,6 +60,7 @@ if context == 'client' then
 elseif context == 'server' then
 	loadFile('functions/server/callback.lua')
 	loadFile('functions/server/database.lua')
+	loadFile('functions/server/version.lua')
 	loadFile('functions/server/webhook.lua')
 	loadFile('frameworks/esx/server.lua')
 	loadFile('frameworks/qbcore/server.lua')

@@ -8,6 +8,22 @@ function Utils.Database.fetchAll(sql,params)
 	return MySQL.Sync.fetchAll(sql, params)
 end
 
+function Utils.Database.fetchAllAsync(sql,params,cb)
+	MySQL.Async.fetchAll(sql, params, function(result)
+		if cb then
+			cb(result)
+		end
+	end)
+end
+
+function Utils.Database.executeAsync(sql,params,cb)
+	MySQL.Async.execute(sql, params, function(result)
+		if cb then
+			cb(result)
+		end
+	end)
+end
+
 function Utils.Database.validateTableColumns(tables, add_column_sqls, change_table_sqls)
 	for table, columns in pairs(tables) do
 		if Config.disable_column_check == true then
@@ -71,6 +87,9 @@ function Utils.Database.validateOwnedVehicleTableColumns(table_name)
 	if wasValidated then
 		return
 	end
+
+	TriggerEvent("lc_utils:setWasValidated", true) -- Sync to all other scripts that import this file
+
 	local tables = {
 		[table_name] = {
 			"parking",
@@ -90,5 +109,9 @@ function Utils.Database.validateOwnedVehicleTableColumns(table_name)
 		}
 	}
 	Utils.Database.validateTableColumns(tables, add_column_sqls)
-	wasValidated = true
 end
+
+RegisterServerEvent('lc_utils:setWasValidated')
+AddEventHandler('lc_utils:setWasValidated', function(bool)
+	wasValidated = bool
+end)

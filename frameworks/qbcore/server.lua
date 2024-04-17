@@ -50,14 +50,14 @@ end
 
 function Utils.Framework.getOnlinePlayers()
 	local xPlayers = Utils.Framework.getPlayers()
-	local players  = {}
+	local players = {}
 	for i=1, #xPlayers, 1 do
 		local xPlayer = QBCore.Functions.GetPlayer(xPlayers[i])
 		if xPlayer then
 			table.insert(players, {
-				source     = xPlayers[i],
-				identifier = xPlayer.PlayerData.citizenid,
-				name       = Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
+				source		= xPlayers[i],
+				identifier 	= xPlayer.PlayerData.citizenid,
+				name		= Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
 			})
 		end
 	end
@@ -240,11 +240,11 @@ end
 -- Vehicles
 -----------------------------------------------------------------------------------------------------------------------------------------
 
-function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate, vehicle_props, state, finance_details)
+function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate_format, vehicle_props, state, finance_details)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
-	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate)
+	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate_format)
 	local mods = vehicle_props and vehicle_props or {}
-	local state = state or 0
+	local state = state or 1
 	local finance_details = finance_details or {}
 	local vehicle_type = vehicle_type or 'car'
 	local garage = Config.owned_vehicles['default'].garage
@@ -409,7 +409,7 @@ function Utils.Framework.generatePlate(plate_format)
 				generatedPlate = generatedPlate .. a
 			end
 		else
-			generatedPlate = generatedPlate ..  string.upper(currentChar)
+			generatedPlate = generatedPlate .. string.upper(currentChar)
 		end
 	end
 	local isDuplicate = MySQL.Sync.fetchScalar('SELECT COUNT(1) FROM player_vehicles WHERE plate = @plate', {

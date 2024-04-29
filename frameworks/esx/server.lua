@@ -166,14 +166,14 @@ local function canStoreItemInInventory(source,item,amount)
 	return weight_ok
 end
 
-function Utils.Framework.givePlayerItem(source,item,amount)
+function Utils.Framework.givePlayerItem(source,item,amount,metadata)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
-			return exports['ox_inventory']:AddItem(source, item, amount)
+			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
 		end
 	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
-		return exports['qs-inventory']:AddItem(source, item, amount)
+		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
@@ -184,7 +184,7 @@ function Utils.Framework.givePlayerItem(source,item,amount)
 			return false
 		end
 	else
-		return Utils.CustomScripts.givePlayerItem(source,item,amount)
+		return Utils.CustomScripts.givePlayerItem(source,item,amount,metadata)
 	end
 	return false
 end
@@ -207,18 +207,18 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 		xPlayer.addWeapon(item, ammo)
 		return true
 	else
-		return Utils.CustomScripts.givePlayerWeapon(source,item,amount)
+		return Utils.CustomScripts.givePlayerWeapon(source,item,amount,metadata)
 	end
 	return false
 end
 
-function Utils.Framework.givePlayerWeapon(source,item,amount)
+function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 	if Config.custom_scripts_compatibility.mdt == "ps-mdt" then
 		error("ps-mdt not available for ESX")
 	elseif Config.custom_scripts_compatibility.mdt == "default" then
-		return Utils.Framework.insertWeaponInInventory(source,item,amount)
+		return Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	else
-		return Utils.CustomScripts.createWeaponInMdt(source,item,amount)
+		return Utils.CustomScripts.createWeaponInMdt(source,item,amount,metadata)
 	end
 	return false
 end

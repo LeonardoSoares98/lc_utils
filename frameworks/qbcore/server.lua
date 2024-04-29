@@ -114,20 +114,20 @@ function Utils.Framework.getPlayerInventory(source)
 	return player_inventory
 end
 
-function Utils.Framework.givePlayerItem(source,item,amount)
+function Utils.Framework.givePlayerItem(source,item,amount,metadata)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
-			return exports['ox_inventory']:AddItem(source, item, amount)
+			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
 		end
 	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
-		return exports['qs-inventory']:AddItem(source, item, amount)
+		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
-		return exports['ps-inventory']:AddItem(source, item, amount)
+		return exports['ps-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
-		return xPlayer.Functions.AddItem(item, amount)
+		return xPlayer.Functions.AddItem(item, amount, nil, metadata)
 	else
-		return Utils.CustomScripts.givePlayerItem(source,item,amount)
+		return Utils.CustomScripts.givePlayerItem(source,item,amount,metadata)
 	end
 	return false
 end
@@ -150,7 +150,7 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	return false
 end
 
-function Utils.Framework.givePlayerWeapon(source,item,amount)
+function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 	if Config.custom_scripts_compatibility.mdt == "ps-mdt" then
 		local xPlayer = QBCore.Functions.GetPlayer(source)
 		local serial = tostring(QBCore.Shared.RandomInt(2) .. QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(1) .. QBCore.Shared.RandomStr(2) .. QBCore.Shared.RandomInt(3) .. QBCore.Shared.RandomStr(4))
@@ -159,16 +159,18 @@ function Utils.Framework.givePlayerWeapon(source,item,amount)
 		local owner = xPlayer.PlayerData.charinfo.firstname .. " " .. xPlayer.PlayerData.charinfo.lastname
 		local weapClass = 1
 		local weapModel = QBCore.Shared.Items[item].label
-		if Utils.Framework.insertWeaponInInventory(source,item,amount,{serie = serial}) then
+		metadata = metadata or {}
+		metadata.serie = serial
+		if Utils.Framework.insertWeaponInInventory(source,item,amount,metadata) then
 			exports['ps-mdt']:CreateWeaponInfo(serial, imageurl, notes, owner, weapClass, weapModel)
 			TriggerClientEvent('QBCore:Notify', source, 'Weapon Registered', 'success')
 			return true
 		end
 		return false
 	elseif Config.custom_scripts_compatibility.mdt == "default" then
-		return Utils.Framework.insertWeaponInInventory(source,item,amount)
+		return Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	else
-		return Utils.CustomScripts.createWeaponInMdt(source,item,amount)
+		return Utils.CustomScripts.createWeaponInMdt(source,item,amount,metadata)
 	end
 end
 
@@ -243,7 +245,7 @@ end
 function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate_format, vehicle_props, state, finance_details)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate_format)
-	local mods = vehicle_props and vehicle_props or {}
+	local mods = vehicle_props and vehicle_props or { plate = plate }
 	local state = state or 1
 	local finance_details = finance_details or {}
 	local vehicle_type = vehicle_type or 'car'

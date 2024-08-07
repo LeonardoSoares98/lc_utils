@@ -27,3 +27,11 @@ function Utils.Entity.isThereSomethingWrongWithThoseBoys(vehicles,peds)
 	end
 	return false
 end
+
+function Utils.Entity.loadModel(model)
+	if HasModelLoaded(model) then return end
+	RequestModel(model)
+	while not HasModelLoaded(model) do
+		Wait(1)
+	end
+end

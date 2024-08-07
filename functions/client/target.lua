@@ -41,6 +41,6 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 			distance = 2.5
 		})
 	else
-		Utils.CustomScripts.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id)
+		Utils.CustomScripts.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)
 	end
 end

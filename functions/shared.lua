@@ -6,7 +6,7 @@ Utils.String = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = {}
-Utils.Version = '1.1.4'
+Utils.Version = '1.1.5'
 
 exports('GetUtils', function()
 	return Utils
@@ -149,6 +149,14 @@ function Utils.String.capitalizeFirst(str)
 	return (str:sub(1, 1):upper() .. str:sub(2))
 end
 
+function Utils.String.split(str, sep)
+	sep = sep or "%s"
+	local fields = {}
+	local pattern = string.format("([^%s]+)", sep)
+	str:gsub(pattern, function(c) fields[#fields + 1] = c end)
+	return fields
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- Math
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -171,7 +179,8 @@ function Utils.Math.weightedRandom(weights, shift)
 	end
 
 	local threshold = math.random(0, sum) + (shift or 0)
-	local cumulative = 100
+	if threshold > sum then threshold = sum end
+	local cumulative = 0
 	for number, weight in pairs(weights) do
 		cumulative = cumulative + weight
 		if threshold <= cumulative then
@@ -261,15 +270,19 @@ function Utils.translate(key)
 	if not langObj then
 		print(string.format("Language '%s' is not available. Using default 'en'.", locale))
 		Config.locale = 'en'
+		langObj = cached_langs[resource][Config.locale]
 	end
 
-	local langObj = cached_langs[resource][Config.locale]
-	if not langObj[key] then
-		print(string.format("Translation key '%s' not found for language '%s'.", key, locale))
-		return 'missing_translation'
+	local keys = Utils.String.split(key,".")
+	for _, k in ipairs(keys) do
+		if not langObj[k] then
+			print(string.format("Translation key '%s' not found for language '%s'.", key, locale))
+			return 'missing_translation'
+		end
+		langObj = langObj[k]
 	end
 
-	return langObj[key]
+	return langObj
 end
 
 Citizen.CreateThread(function()

@@ -14,7 +14,7 @@ function Utils.Vehicles.spawnVehicle(model,x,y,z,h,blip_data,properties)
 	properties.bodyHealth = properties.bodyHealth or 1000.0
 
 	local model_hash = GetHashKey(model)
-	loadModel(model_hash)
+	Utils.Entity.loadModel(model_hash)
 
 	local vehicle = CreateVehicle(model_hash,x,y,z+0.5,h,true,false)
 	local netid = NetworkGetNetworkIdFromEntity(vehicle)
@@ -55,14 +55,6 @@ function removePlateInGeneratedPlatesFromVehicle(vehicle)
 			generatedPlates[k] = nil
 			return k
 		end
-	end
-end
-
-function loadModel(model)
-	if HasModelLoaded(model) then return end
-	RequestModel(model)
-	while not HasModelLoaded(model) do
-		Wait(0)
 	end
 end
 

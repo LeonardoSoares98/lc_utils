@@ -138,7 +138,7 @@ function Utils.Framework.getPlayerInventory(source)
 	local inventory = {}
 	for k, v in pairs(xPlayer.getInventory()) do
 		if v.count and v.count > 0 then
-			table.insert(inventory, {amount = v.count, name = v.name})
+			table.insert(inventory, {amount = v.count, name = v.name, label = v.label})
 		end
 	end
 	return inventory
@@ -295,6 +295,18 @@ function Utils.Framework.hasWeaponLicense(source)
 		Wait(10)
 	end
 	return hasLicense
+end
+
+function Utils.Framework.registerUsableItem(item_id, event_name, is_server_event, ...)
+	local args = {...}
+	ESX.RegisterUsableItem(item_id, function(playerId)
+		local xPlayer = ESX.GetPlayerFromId(playerId)
+		if is_server_event then
+			TriggerEvent(event_name, xPlayer.source, item_id, xPlayer.identifier, table.unpack(args))
+		else
+			TriggerClientEvent(event_name, xPlayer.source, item_id, xPlayer.identifier, table.unpack(args))
+		end
+	end)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -519,6 +531,10 @@ function Utils.Framework.generatePlate(plate_format)
 	return generatedPlate
 end
 
+Citizen.CreateThread(function()
+	Wait(2000)
+	Utils.Database.validateOwnedVehicleTableColumns("owned_vehicles")
+end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- Trucker
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -539,7 +555,18 @@ function Utils.Framework.getpartyMembers(party_id)
 	return Utils.Database.fetchAll(sql,{['@party_id'] = party_id});
 end
 
-Citizen.CreateThread(function()
-	Wait(2000)
-	Utils.Database.validateOwnedVehicleTableColumns("owned_vehicles")
-end)
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Fisher
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.getTopFishers()
+	local sql = [[SELECT U.lastname as name, U.firstname, F.user_id, F.exp, SUM(C.amount) as fishes_caught
+		FROM fishing_simulator_users F 
+		INNER JOIN users U ON F.user_id = U.identifier
+		LEFT JOIN fishing_simulator_fishes_caught C ON F.user_id = C.user_id
+		WHERE F.exp > 0
+		GROUP BY U.lastname, U.firstname, F.user_id, F.exp
+		ORDER BY F.exp DESC
+		LIMIT 10]];
+	return Utils.Database.fetchAll(sql,{});
+end

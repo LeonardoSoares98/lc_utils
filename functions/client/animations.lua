@@ -7,3 +7,10 @@ function Utils.Animations.stopPlayerAnim(upper)
 		ClearPedTasks(PlayerPedId())
 	end
 end
+
+function Utils.Animations.loadAnimDict(dict)
+	RequestAnimDict(dict)
+	while not HasAnimDictLoaded(dict) do
+		Citizen.Wait(5)
+	end
+end

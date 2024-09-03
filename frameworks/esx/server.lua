@@ -542,7 +542,7 @@ end)
 function Utils.Framework.getTopTruckers()
 	local sql = [[SELECT U.lastname as name, U.firstname, T.user_id, T.exp, T.traveled_distance 
 		FROM trucker_users T 
-		INNER JOIN users U ON (T.user_id = U.identifier)
+		INNER JOIN users U ON T.user_id = U.identifier
 		WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
 	return Utils.Database.fetchAll(sql,{});
 end
@@ -550,7 +550,7 @@ end
 function Utils.Framework.getpartyMembers(party_id)
 	local sql = [[SELECT U.lastname as name, U.firstname, P.* 
 		FROM `trucker_party_members` P
-		INNER JOIN users U ON (P.user_id = U.identifier)
+		INNER JOIN users U ON P.user_id = U.identifier
 		WHERE party_id = @party_id]];
 	return Utils.Database.fetchAll(sql,{['@party_id'] = party_id});
 end
@@ -569,4 +569,28 @@ function Utils.Framework.getTopFishers()
 		ORDER BY F.exp DESC
 		LIMIT 10]];
 	return Utils.Database.fetchAll(sql,{});
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Collations
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.validateTableCollations(script_table, script_column, alter_queries)
+	local collation_sql = [[SELECT COLLATION_NAME, CHARACTER_SET_NAME 
+		FROM information_schema.columns
+		WHERE table_schema = (SELECT DATABASE() AS default_schema)
+		AND table_name = 'users'
+		AND column_name = 'identifier']]
+	local query_collation = Utils.Database.fetchAll(collation_sql,{})[1];
+	local collation_sql_script = [[SELECT COLLATION_NAME, CHARACTER_SET_NAME
+		FROM information_schema.columns
+		WHERE table_schema = (SELECT DATABASE() AS default_schema)
+		AND table_name = ']]..script_table..[['
+		AND column_name = ']]..script_column..[[']]
+	local query_collation_script = Utils.Database.fetchAll(collation_sql_script,{})[1];
+	if query_collation and query_collation['COLLATION_NAME'] and query_collation['CHARACTER_SET_NAME'] and query_collation_script and query_collation_script['COLLATION_NAME'] and query_collation['COLLATION_NAME'] ~= query_collation_script['COLLATION_NAME'] then
+		for _, alter_query in ipairs(alter_queries) do
+			Utils.Database.execute(alter_query:format(query_collation['CHARACTER_SET_NAME'],query_collation['COLLATION_NAME']), {})
+		end
+	end
 end

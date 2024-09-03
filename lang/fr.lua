@@ -5,13 +5,13 @@ Utils.Lang['fr'] = {
 	['confirmation_modal_confirm_button'] = "Confirmer",
 
 	['custom_validity'] = {
-		['fill_field'] = "Please fill out this field",
-		['select_fill_field'] = "Please select an item from the list",
-		['invalid_value'] = "Invalid value",
-		['more_than'] = "Must be greater than or equal to {0}",
-		['less_than'] = "Must be less than or equal to {0}",
-		['pattern_mismatch'] = "Invalid format",
-		['too_long'] = "This entry is too long",
-		['too_short'] = "This entry is too short",
+		['fill_field'] = "Merci de remplir ce champ",
+		['select_fill_field'] = "Veuillez sélectionner un élément dans la liste",
+		['invalid_value'] = "Valeur invalide",
+		['more_than'] = "Doit être supérieur ou égal à{0}",
+		['less_than'] = "Doit être inférieur ou égal à{0}",
+		['pattern_mismatch'] = "Format invalide",
+		['too_long'] = "Cette entrée est trop longue",
+		['too_short'] = "Cette entrée est trop courte",
 	}
 }

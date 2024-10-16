@@ -5,6 +5,12 @@ function notify(type,message)
 	elseif Config.custom_scripts_compatibility.notification == "qbcore" then
 		QBCore = exports['qb-core']:GetCoreObject()
 		QBCore.Functions.Notify(message, type, 8000)
+	elseif Config.custom_scripts_compatibility.notification == "ox_lib" then
+		exports.ox_lib:notify({
+			title = Utils.String.capitalizeFirst(type),
+			description = message,
+			type = type
+		})
 	elseif Config.custom_scripts_compatibility.notification == "default" then
 		SendNUIMessage({ notification = message, notification_type = type })
 	else

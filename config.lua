@@ -24,7 +24,7 @@ Config.custom_scripts_compatibility = {
 	['keys'] = "default",						-- [qs-vehiclekeys|cd_garage|jaksam|wasabi_carlock|default|other] Keys script Compatibility
 	['mdt'] = "default",						-- [ps-mdt|redutzu-mdt|default|other] MDT script Compatibility (to log weapon serial)
 	['target'] = "disabled",					-- [qb-target|ox_target|disabled|other] Target script Compatibility (disabled will use markers)
-	['notification'] = "default",				-- [okokNotify|qbcore|default|other] Notification script Compatibility
+	['notification'] = "default",				-- [okokNotify|qbcore|default|ox_lib|other] Notification script Compatibility
 }
 
 Config.marker_style = 1							-- (Only if target is disabled) [1|2] There are 2 available styles for markers, choose them here

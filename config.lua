@@ -17,7 +17,7 @@ Config.format = {
 
 -- Here, you can easily switch between the available script compatibilities.
 -- The "default" option will use the framework's default script
--- ATTENTION: If you set it to "other," it's necessary to configure the script inside the custom_scripts folder in the respective file
+-- ATTENTION: If you set it to "other," it's necessary to configure the script inside the custom_scripts folder in the respective file. See: https://docs.lixeirocharmoso.com/utils/adding_your_exports
 Config.custom_scripts_compatibility = {
 	['fuel'] = "default",						-- [ox_fuel|ps-fuel|sna-fuel|cdn-fuel|LegacyFuel|default|other] Fuel script Compatibility
 	['inventory'] = "default",					-- [ox_inventory|qs-inventory|ps-inventory|default|other] Inventory script Compatibility
@@ -25,6 +25,12 @@ Config.custom_scripts_compatibility = {
 	['mdt'] = "default",						-- [ps-mdt|redutzu-mdt|default|other] MDT script Compatibility (to log weapon serial)
 	['target'] = "disabled",					-- [qb-target|ox_target|disabled|other] Target script Compatibility (disabled will use markers)
 	['notification'] = "default",				-- [okokNotify|qbcore|ox_lib|default|other] Notification script Compatibility
+}
+
+Config.notification = {							-- (Only if notification is default)
+	['has_title'] = false,						-- Select if you want the notification to have a title or not
+	['position'] = "top-right",					-- [top-left|top-center|top-right|middle-left|middle-right|bottom-left|bottom-center|bottom-right] Position of the notification on the screen
+	['duration'] = 8000,						-- Time (in ms) the notifications will be shown
 }
 
 Config.marker_style = 1							-- (Only if target is disabled) [1|2] There are 2 available styles for markers, choose them here

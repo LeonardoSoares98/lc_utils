@@ -13,5 +13,12 @@ Utils.Lang['ja'] = {
 		['pattern_mismatch'] = "無効な形式",
 		['too_long'] = "このエントリーは長すぎます",
 		['too_short'] = "このエントリーは短すぎます"
-	}
+	},
+
+	['notification'] = {
+		['error'] = "エラー",
+		['success'] = "成功",
+		['warning'] = "警告",
+		['info'] = "情報",
+	},
 }

@@ -28,6 +28,7 @@ shared_scripts {
 }
 
 files {
+	"version",
 	"functions/loader.lua",
 	"nui/index.html",
 	"nui/index.js",

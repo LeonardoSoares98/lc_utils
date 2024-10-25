@@ -13,5 +13,12 @@ Utils.Lang['zn-cn'] = {
 		['pattern_mismatch'] = "格式无效",
 		['too_long'] = "此条目太长",
 		['too_short'] = "此条目太短"
-	}
+	},
+
+	['notification'] = {
+		['error'] = "错误",
+		['success'] = "成功",
+		['warning'] = "警告",
+		['info'] = "信息",
+	},
 }

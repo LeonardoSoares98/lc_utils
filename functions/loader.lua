@@ -71,3 +71,11 @@ loadFile('lang/'..Config.locale..'.lua')
 if Config.locale ~= 'en' then
 	loadFile('lang/en.lua')
 end
+
+-- Load version file in the dependent scripts
+local version = LoadResourceFile("lc_utils", "version")
+if version then
+	Utils.Version = Utils.Math.trim(version)
+else
+	error("^1[lc_utils] Warning: Could not load the version file.^7")
+end

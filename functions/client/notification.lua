@@ -12,7 +12,17 @@ function notify(type,message)
 			type = type
 		})
 	elseif Config.custom_scripts_compatibility.notification == "default" then
-		SendNUIMessage({ notification = message, notification_type = type })
+		local title = nil
+		if Config.notification.has_title then
+			title = Utils.translate("notification." .. type)
+		end
+		SendNUIMessage({
+			notification = message,
+			notification_type = type,
+			duration = Config.notification.duration,
+			position = Config.notification.position,
+			title = title
+		})
 	else
 		Utils.CustomScripts.notify(type,message)
 	end

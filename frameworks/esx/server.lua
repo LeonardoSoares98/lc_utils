@@ -138,7 +138,7 @@ function Utils.Framework.getPlayerInventory(source)
 	local inventory = {}
 	for k, v in pairs(xPlayer.getInventory()) do
 		if v.count and v.count > 0 then
-			table.insert(inventory, {amount = v.count, name = v.name, label = v.label})
+			table.insert(inventory, { amount = v.count, name = string.lower(v.name), label = v.label })
 		end
 	end
 	return inventory

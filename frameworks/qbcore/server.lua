@@ -110,7 +110,7 @@ function Utils.Framework.getPlayerInventory(source)
 	local player_inventory = {}
 	for k,v in pairs(xPlayer.PlayerData.items) do
 		v.amount = v.amount or v.count
-		table.insert(player_inventory,v)
+		table.insert(player_inventory, { amount = v.amount, name = string.lower(v.name), label = v.label })
 	end
 	return player_inventory
 end

@@ -6,6 +6,7 @@ Utils.String = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = {}
+Utils.Version = LoadResourceFile("lc_utils", "version") and string.gsub(LoadResourceFile("lc_utils", "version"), '^%s*(.-)%s*$', '%1') or nil
 
 exports('GetUtils', function()
 	return Utils
@@ -309,9 +310,7 @@ Citizen.CreateThread(function()
 
 	Utils.loadLanguageFile(Utils.Lang)
 
-	local version = LoadResourceFile("lc_utils", "version")
-	if version then
-		Utils.Version = Utils.Math.trim(version)
+	if Utils.Version then
 		print("^2[lc_utils] Loaded! Support discord: https://discord.gg/U5YDgbh ^3[v"..Utils.Version.."]^7")
 	else
 		error("^1[lc_utils] Warning: Could not load the version file.^7")
@@ -350,6 +349,41 @@ Citizen.CreateThread(function()
 	}
 	Config = Utils.validateConfig(Config, configs_to_validate)
 end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- File functions validator
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.validateFunctions(functions, file_name)
+	local resourceName = GetCurrentResourceName()
+
+	for i = 1, #functions do
+		local fnName = functions[i]
+		local fn = _G[fnName]
+		if not Utils.functionExists(fn) then
+			print("^8[" .. resourceName .. "] ^3You have a missing function (^1" .. fnName .. "^3) in your '^1" .. file_name .. "^3' file. Please update this file to ensure the script functions correctly.^7")
+			_G[fnName] = function()
+				return true
+			end
+		end
+	end
+end
+
+local cached_functions = {}
+function Utils.functionExists(fn)
+	if fn == nil then
+		return false
+	end
+
+	if cached_functions[fn] ~= nil then
+		return cached_functions[fn]
+	end
+
+	-- Cache the result of type check
+	local exists = type(fn) == "function"
+	cached_functions[fn] = exists
+	return exists
+end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- Config validator

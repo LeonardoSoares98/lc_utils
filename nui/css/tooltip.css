@@ -13,7 +13,6 @@
 [data-tooltip] {
 	position: relative;
 	z-index: 10;
-    font-family: 'Montserrat' !important;
 }
 /* Positioning and visibility settings of the tooltip */
 [data-tooltip]:before, [data-tooltip]:after {
@@ -26,6 +25,8 @@
 	pointer-events: none;
 	transition: 0.2s;
 	will-change: transform;
+	font-family: 'Montserrat', 'Arial' !important;
+	letter-spacing: normal;
 }
 /* The actual tooltip with a dynamic width */
 [data-tooltip]:before {

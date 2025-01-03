@@ -11,6 +11,8 @@ function Utils.Framework.giveVehicleKeys(vehicle, plate, model)
 		exports['wasabi_carlock']:GiveKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "jaksam" then
 		TriggerServerEvent("vehicles_keys:selfGiveVehicleKeys", plate)
+	elseif Config.custom_scripts_compatibility.keys == "MrNewbVehicleKeys" then
+		exports.MrNewbVehicleKeys:GiveKeys(vehicle)
 	elseif Config.custom_scripts_compatibility.keys == "default" then
 		-- As far as I know, the ESX dont have a default key script
 	else
@@ -25,6 +27,8 @@ function Utils.Framework.removeVehicleKeys(vehicle)
 		exports['qs-vehiclekeys']:RemoveKeys(plate, model)
 	elseif Config.custom_scripts_compatibility.keys == "wasabi_carlock" then
 		exports['wasabi_carlock']:RemoveKey(plate)
+	elseif Config.custom_scripts_compatibility.keys == "MrNewbVehicleKeys" then
+		exports.MrNewbVehicleKeys:RemoveKeys(vehicle)
 	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" then
 		-- Do nothing :)
 	else
@@ -37,6 +41,8 @@ function Utils.Framework.removeVehicleKeysFromPlate(plate,model)
 		exports['qs-vehiclekeys']:RemoveKeys(plate, model)
 	elseif Config.custom_scripts_compatibility.keys == "wasabi_carlock" then
 		exports['wasabi_carlock']:RemoveKey(plate)
+	elseif Config.custom_scripts_compatibility.keys == "MrNewbVehicleKeys" then
+		exports.MrNewbVehicleKeys:RemoveKeysByPlate(plate)
 	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" then
 		-- Do nothing :)
 	else

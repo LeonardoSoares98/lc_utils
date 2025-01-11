@@ -59,6 +59,8 @@ function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 		exports['cdn-fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "LegacyFuel" then
 		exports['LegacyFuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "okokGasStation" then
+		exports['okokGasStation']:SetFuel(vehicle, fuel)	
 	elseif Config.custom_scripts_compatibility.fuel == "default" then
 		exports['LegacyFuel']:SetFuel(vehicle, fuel)
 	else

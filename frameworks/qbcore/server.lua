@@ -125,6 +125,8 @@ function Utils.Framework.givePlayerItem(source,item,amount,metadata)
 		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		return exports['ps-inventory']:AddItem(source, item, amount, nil, metadata)
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		return xPlayer.Functions.AddItem(item, amount, nil, metadata)
 	else
@@ -143,6 +145,8 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		return exports['ps-inventory']:AddItem(source, item, amount, nil, metadata)
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		return xPlayer.Functions.AddItem(item, amount, nil, metadata)
 	else
@@ -212,6 +216,8 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 		else
 			return false
 		end
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:RemoveItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "default" or Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		if xPlayer.Functions.GetItemByName(item) and xPlayer.Functions.GetItemByName(item).amount >= amount then
 			xPlayer.Functions.RemoveItem(item,amount)
@@ -235,6 +241,8 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 		else
 			return false
 		end
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:RemoveItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "default" or Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		if xPlayer.Functions.GetItemByName(item) and xPlayer.Functions.GetItemByName(item).amount >= amount then
 			xPlayer.Functions.RemoveItem(item,amount)

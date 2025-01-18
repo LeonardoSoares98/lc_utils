@@ -176,6 +176,8 @@ function Utils.Framework.givePlayerItem(source,item,amount,metadata)
 		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		exports["tgiann-inventory"]:AddItem(source, item, amount, slot, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		if canStoreItemInInventory(source,item,amount) then
 			xPlayer.addInventoryItem(item, amount)
@@ -203,6 +205,8 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 		return exports['qs-inventory']:AddItem(source, item, amount, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		exports["tgiann-inventory"]:AddItem(source, item, amount, slot, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		xPlayer.addWeapon(item, ammo)
 		return true
@@ -245,6 +249,8 @@ function Utils.Framework.getPlayerItem(source,item,amount)
 		end
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		exports["tgiann-inventory"]:RemoveItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		if Utils.Framework.playerHasItem(source,item,amount) then
 			xPlayer.removeInventoryItem(item,amount)
@@ -270,6 +276,8 @@ function Utils.Framework.getPlayerWeapon(source,item,amount)
 		end
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		exports["tgiann-inventory"]:RemoveItem(source, item, amount)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		if Utils.Framework.playerHasItem(source,item,amount) then
 			xPlayer.removeInventoryItem(item,amount)

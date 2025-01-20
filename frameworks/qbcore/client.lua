@@ -51,6 +51,8 @@ end
 function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 	if Config.custom_scripts_compatibility.fuel == "ox_fuel" then
 		Entity(vehicle).state.fuel = fuel
+	elseif Config.custom_scripts_compatibility.fuel == "ti_fuel" then
+		exports['ti_fuel']:setFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "ps-fuel" then
 		exports['ps-fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "sna-fuel" or Config.custom_scripts_compatibility.fuel == "qb-sna-fuel" then

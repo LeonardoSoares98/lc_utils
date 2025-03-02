@@ -101,6 +101,16 @@ function Utils.Framework.hasJobs(source,jobs)
 	return false
 end
 
+function Utils.Framework.getPlayerJob(source)
+	local xPlayer = QBCore.Functions.GetPlayer(source)
+	local PlayerJob = xPlayer.PlayerData.job
+	if Config.debug_job then
+		print("Job name: "..PlayerJob.name)
+		print("On duty:",PlayerJob.onduty)
+	end
+	return PlayerJob.name, PlayerJob.onduty
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- Items
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -161,7 +171,7 @@ function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 		local weapClass = 1
 		local weapModel = QBCore.Shared.Items[item].label
 		metadata = metadata or {}
-		metadata.serie = serial
+		metadata.serial = serial
 		if Utils.Framework.insertWeaponInInventory(source,item,amount,metadata) then
 			exports['ps-mdt']:CreateWeaponInfo(serial, imageurl, notes, owner, weapClass, weapModel)
 			TriggerClientEvent('QBCore:Notify', source, 'Weapon Registered', 'success')

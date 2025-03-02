@@ -179,6 +179,22 @@ end
 -- Math
 -----------------------------------------------------------------------------------------------------------------------------------------
 
+function Utils.numberFormat(number, decimalPlaces)
+    local formatString = "%f"
+    if decimalPlaces ~= nil then
+        formatString = string.format("%%.%df", decimalPlaces)
+    end
+
+    local formattedNumber = string.format(formatString, number)
+
+    -- Remove trailing zeros if needed
+    if decimalPlaces == nil then
+        formattedNumber = formattedNumber:gsub("%.?0*$", "")
+    end
+
+    return formattedNumber
+end
+
 function Utils.Math.trim(value)
 	if not value then return nil end
 	return (string.gsub(value, '^%s*(.-)%s*$', '%1'))

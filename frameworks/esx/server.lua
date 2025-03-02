@@ -133,6 +133,15 @@ function Utils.Framework.hasJobs(source,jobs)
 	return false
 end
 
+function Utils.Framework.getPlayerJob(source)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local PlayerJob = xPlayer.getJob()
+	if Config.debug_job then
+		print("Job name: "..PlayerJob.name)
+	end
+	return PlayerJob.name, true
+end
+
 function Utils.Framework.getPlayerInventory(source)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local inventory = {}

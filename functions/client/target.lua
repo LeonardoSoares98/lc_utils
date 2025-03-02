@@ -44,3 +44,37 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 		Utils.CustomScripts.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)
 	end
 end
+
+function Utils.Target.createTargetForModel(models,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)
+	if Config.custom_scripts_compatibility.target == 'ox_target' then
+		exports['ox_target']:addModel(models, {
+			{
+				icon = icon,
+				iconColor = iconColor,
+				label = labelText,
+				distance = 2.5,
+				onSelect = function()
+					onSelectTargetOptionCallback(zone_id,callbackData)
+				end,
+			},
+		})
+	elseif Config.custom_scripts_compatibility.target == 'qb-target' then
+		assert(Config.framework ~= "ESX", "qb-target not available for ESX")
+		local caller_resource = getResourceName()
+		zone_id = caller_resource .. ":" .. (zone_id or "")
+		exports['qb-target']:AddTargetModel(models, {
+			options = {
+				{
+					icon = icon,
+					label = labelText,
+					action = function()
+						onSelectTargetOptionCallback(zone_id,callbackData)
+					end,
+				}
+			},
+			distance = 2.5,
+		})
+	else
+		Utils.CustomScripts.createTargetForModel(models,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)
+	end
+end

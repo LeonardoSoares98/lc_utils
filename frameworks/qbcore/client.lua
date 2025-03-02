@@ -51,6 +51,8 @@ end
 function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 	if Config.custom_scripts_compatibility.fuel == "ox_fuel" then
 		Entity(vehicle).state.fuel = fuel
+	elseif Config.custom_scripts_compatibility.fuel == "lc_fuel" then
+		exports['lc_fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "ps-fuel" then
 		exports['ps-fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "sna-fuel" or Config.custom_scripts_compatibility.fuel == "qb-sna-fuel" then
@@ -59,6 +61,8 @@ function Utils.Framework.setVehicleFuel(vehicle, plate, model, fuel)
 		exports['cdn-fuel']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "LegacyFuel" then
 		exports['LegacyFuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "okokGasStation" then
+		exports['okokGasStation']:SetFuel(vehicle, fuel)
 	elseif Config.custom_scripts_compatibility.fuel == "default" then
 		exports['LegacyFuel']:SetFuel(vehicle, fuel)
 	else

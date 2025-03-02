@@ -228,6 +228,10 @@ end
 function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 	if Config.custom_scripts_compatibility.mdt == "ps-mdt" then
 		error("ps-mdt not available for ESX")
+	elseif Config.custom_scripts_compatibility.mdt == "redutzu-mdt" then
+		error("redutzu-mdt not available for ESX")
+	elseif Config.custom_scripts_compatibility.mdt == "lb-tablet" then
+		error("lb-tablet not available for ESX")
 	elseif Config.custom_scripts_compatibility.mdt == "default" then
 		return Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	else

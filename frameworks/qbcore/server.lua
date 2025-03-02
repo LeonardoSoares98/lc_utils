@@ -101,6 +101,16 @@ function Utils.Framework.hasJobs(source,jobs)
 	return false
 end
 
+function Utils.Framework.getPlayerJob(source)
+	local xPlayer = QBCore.Functions.GetPlayer(source)
+	local PlayerJob = xPlayer.PlayerData.job
+	if Config.debug_job then
+		print("Job name: "..PlayerJob.name)
+		print("On duty:",PlayerJob.onduty)
+	end
+	return PlayerJob.name, PlayerJob.onduty
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- Items
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -165,7 +175,7 @@ function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 		local weapClass = 1
 		local weapModel = QBCore.Shared.Items[item].label
 		metadata = metadata or {}
-		metadata.serie = serial
+		metadata.serial = serial
 		if Utils.Framework.insertWeaponInInventory(source,item,amount,metadata) then
 			exports['ps-mdt']:CreateWeaponInfo(serial, imageurl, notes, owner, weapClass, weapModel)
 			TriggerClientEvent('QBCore:Notify', source, 'Weapon Registered', 'success')
@@ -186,6 +196,24 @@ function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 				notes = 'attachments, color, etc.'
 			})
 			TriggerClientEvent('QBCore:Notify', source, 'Weapon Registered', 'success')
+			return true
+		end
+		return false
+	elseif Config.custom_scripts_compatibility.mdt == "lb-tablet" then
+		local xPlayer = QBCore.Functions.GetPlayer(source)
+		metadata = metadata or {}
+		if Config.custom_scripts_compatibility.inventory == 'ox_inventory' then
+			metadata.serial = metadata.serial or ('%s%s%s'):format(math.random(100000,999999), QBCore.Shared.RandomStr(3), math.random(100000,999999))
+			exports["lb-tablet"]:RegisterWeapon(metadata.serial, {
+				owner = xPlayer.PlayerData.citizenid,
+				weaponName = item
+			})
+		else
+			metadata.serial = metadata.serial or tostring(QBCore.Shared.RandomInt(2) .. QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(1) .. QBCore.Shared.RandomStr(2) .. QBCore.Shared.RandomInt(3) .. QBCore.Shared.RandomStr(4))
+			exports["lb-tablet"]:RegisterWeapon(metadata.serial, {
+				owner = xPlayer.PlayerData.citizenid,
+				weaponName = item
+			})
 			return true
 		end
 		return false

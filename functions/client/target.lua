@@ -11,7 +11,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 					icon = icon,
 					iconColor = iconColor,
 					label = labelText,
-					distance = 2.5,
+					distance = 2.0,
 					onSelect = function()
 						onSelectTargetOptionCallback(location_id,callbackData)
 					end,
@@ -22,7 +22,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 		assert(Config.framework ~= "ESX", "qb-target not available for ESX")
 		local caller_resource = getResourceName()
 		zone_id = caller_resource .. ":" .. (zone_id or location_id)
-		exports['qb-target']:AddBoxZone(zone_id, vector3(x,y,z), 2.5, 2.5, {
+		exports['qb-target']:AddBoxZone(zone_id, vector3(x,y,z), 2.0, 2.0, {
 			name = zone_id,
 			debugPoly = false,
 			heading = 0.0,
@@ -38,7 +38,7 @@ function Utils.Target.createTargetInCoords(location_id,x,y,z,onSelectTargetOptio
 					label = labelText
 				}
 			},
-			distance = 2.5
+			distance = 2.0
 		})
 	else
 		Utils.CustomScripts.createTargetInCoords(location_id,x,y,z,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)
@@ -52,7 +52,7 @@ function Utils.Target.createTargetForModel(models,onSelectTargetOptionCallback,l
 				icon = icon,
 				iconColor = iconColor,
 				label = labelText,
-				distance = 2.5,
+				distance = 2.0,
 				onSelect = function()
 					onSelectTargetOptionCallback(zone_id,callbackData)
 				end,
@@ -72,7 +72,7 @@ function Utils.Target.createTargetForModel(models,onSelectTargetOptionCallback,l
 					end,
 				}
 			},
-			distance = 2.5,
+			distance = 2.0,
 		})
 	else
 		Utils.CustomScripts.createTargetForModel(models,onSelectTargetOptionCallback,labelText,icon,iconColor,zone_id,callbackData)

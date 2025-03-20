@@ -51,6 +51,7 @@ if context == 'client' then
 	loadFile('functions/client/scaleform.lua')
 	loadFile('functions/client/target.lua')
 	loadFile('functions/client/vehicles.lua')
+	loadFile('functions/client/zones.lua')
 	loadFile('frameworks/esx/client.lua')
 	loadFile('frameworks/qbcore/client.lua')
 	loadFile('custom_scripts/client/fuel.lua')

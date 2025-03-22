@@ -16,7 +16,14 @@ end)
 -- Debug
 -----------------------------------------------------------------------------------------------------------------------------------------
 
-function Utils.Debug.printTable(node)
+function Utils.Debug.printTable(...)
+    local args = {...}
+    for _, arg in ipairs(args) do
+        printNode(arg)
+    end
+end
+
+function printNode(node)
 	if type(node) == "table" then
 		-- to make output beautiful
 		local function tab(amt)

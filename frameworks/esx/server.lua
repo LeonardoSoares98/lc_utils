@@ -186,7 +186,7 @@ function Utils.Framework.givePlayerItem(source,item,amount,metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
-		exports["tgiann-inventory"]:AddItem(source, item, amount, slot, metadata)
+		exports["tgiann-inventory"]:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		if canStoreItemInInventory(source,item,amount) then
 			xPlayer.addInventoryItem(item, amount)
@@ -215,7 +215,7 @@ function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
 		error("ps-inventory not available for ESX")
 	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
-		exports["tgiann-inventory"]:AddItem(source, item, amount, slot, metadata)
+		exports["tgiann-inventory"]:AddItem(source, item, amount, nil, metadata)
 	elseif Config.custom_scripts_compatibility.inventory == "default" then
 		xPlayer.addWeapon(item, ammo)
 		return true

@@ -89,11 +89,11 @@ function Utils.Target.createTargetForModel(models,onSelectTargetOptionCallback,l
 	end
 end
 
-function Utils.Target.createTargetForBone(boneList,params,onSelectTargetOptionCallback,callbackData,canInteractTargetCallback)
+function Utils.Target.createTargetForVehicleBone(boneList,params,onSelectTargetOptionCallback,callbackData,canInteractTargetCallback)
     -- Ensure required parameters exist:
-    local labelText = assert(params.labelText, "Missing labelText in Utils.Target.createTargetForBone")
-    local icon      = assert(params.icon,      "Missing icon in Utils.Target.createTargetForBone")
-    local iconColor = assert(params.iconColor, "Missing iconColor in Utils.Target.createTargetForBone")
+    local labelText = assert(params.labelText, "Missing labelText in Utils.Target.createTargetForVehicleBone")
+    local icon      = assert(params.icon,      "Missing icon in Utils.Target.createTargetForVehicleBone")
+    local iconColor = assert(params.iconColor, "Missing iconColor in Utils.Target.createTargetForVehicleBone")
 
     -- Provide sensible defaults for optional parameters:
     local zone_id   = params.zone_id  or ""
@@ -107,7 +107,7 @@ function Utils.Target.createTargetForBone(boneList,params,onSelectTargetOptionCa
     zone_id = callerResource .. ":" .. zone_id
 
     if Config.custom_scripts_compatibility.target == 'ox_target' then
-        exports['ox_target']:addGlobalOption({
+        exports['ox_target']:addGlobalVehicle({
             {
                 name = zone_id,
                 bones = boneList,
@@ -142,6 +142,9 @@ function Utils.Target.createTargetForBone(boneList,params,onSelectTargetOptionCa
             distance = distance,
         })
     else
-        Utils.CustomScripts.createTargetForBone(boneList,params,onSelectTargetOptionCallback,callbackData,canInteractTargetCallback)
+        Utils.CustomScripts.createTargetForVehicleBone(boneList,params,onSelectTargetOptionCallback,callbackData,canInteractTargetCallback)
     end
 end
+
+-- Retro-compatibility, should remove.
+Utils.Target.createTargetForBone = Utils.Target.createTargetForVehicleBone

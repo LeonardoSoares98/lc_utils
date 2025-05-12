@@ -3,7 +3,8 @@ local progress_callbacks = {}
 --- Generate a progress bar.
 --- @param duration         number            -- milliseconds to run (must be > 0)
 --- @param label            string|nil        -- text to show; falls back to localisation key
---- @param callbackFunction function|nil      -- optional callback (will be validated)
+--- @param color            string|nil        -- progress bar color hex; falls back to #375a7f
+--- @param callbackFunction function|nil      -- optional callback
 --- @param callbackData     any|nil           -- data passed into the callback
 function progressBar(duration, label, color, callbackFunction, callbackData)
     assert(type(duration)  == "number" and duration > 0, ("progressBar: 'duration' must be a positive number, got %q"):format(duration))

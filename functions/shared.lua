@@ -345,6 +345,7 @@ Citizen.CreateThread(function()
 	local configs_to_validate = {
 		{ config_path = {"custom_scripts_compatibility"}, default_value = {	['fuel'] = "default", ['inventory'] = "default", ['keys'] = "default", ['mdt'] = "default", ['target'] = "disabled", ['notification'] = "default"} },
 		{ config_path = {"custom_scripts_compatibility", "notification"}, default_value = "default" },
+		{ config_path = {"custom_scripts_compatibility", "progress_bar"}, default_value = "default" },
 		{ config_path = {"owned_vehicles", "default"}, default_value = { ['garage'] = 'motelgarage', ['garage_display_name'] = 'Motel Parking' } },
 		{ config_path = {"notification"}, default_value = { ['has_title'] = false, ['position'] = "top-right", ['duration'] = 8000 } },
 		{ config_path = {"spawned_vehicles"}, default_value = {

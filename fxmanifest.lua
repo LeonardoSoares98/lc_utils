@@ -32,5 +32,6 @@ files {
 	"functions/loader.lua",
 	"nui/index.html",
 	"nui/index.js",
+	"nui/js/*",
 	"nui/css/*"
 }

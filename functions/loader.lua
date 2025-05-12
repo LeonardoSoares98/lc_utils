@@ -57,6 +57,7 @@ if context == 'client' then
 	loadFile('custom_scripts/client/fuel.lua')
 	loadFile('custom_scripts/client/keys.lua')
 	loadFile('custom_scripts/client/notification.lua')
+	loadFile('custom_scripts/client/progress_bar.lua')
 	loadFile('custom_scripts/client/target.lua')
 elseif context == 'server' then
 	loadFile('functions/server/callback.lua')

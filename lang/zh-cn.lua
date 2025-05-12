@@ -21,4 +21,8 @@ Utils.Lang['zh-cn'] = {
 		['warning'] = "警告",
 		['info'] = "信息",
 	},
+
+    ['progress_bar'] = {
+        ['default_text'] = "加载中..."
+    },
 }

@@ -21,4 +21,8 @@ Utils.Lang['no'] = {
 		['warning'] = "Advarsel",
 		['info'] = "Info",
 	},
+
+    ['progress_bar'] = {
+        ['default_text'] = "Laster..."
+    },
 }

@@ -21,4 +21,8 @@ Utils.Lang['ja'] = {
 		['warning'] = "警告",
 		['info'] = "情報",
 	},
+
+    ['progress_bar'] = {
+        ['default_text'] = "読み込み中..."
+    },
 }

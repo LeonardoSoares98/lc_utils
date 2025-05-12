@@ -25,6 +25,7 @@ Config.custom_scripts_compatibility = {
 	['mdt'] = "default",						-- [ps-mdt|redutzu-mdt|lb-tablet|default|other] MDT script Compatibility (to log weapon serial)
 	['target'] = "disabled",					-- [qb-target|ox_target|disabled|other] Target script Compatibility (disabled will use markers)
 	['notification'] = "default",				-- [okokNotify|qbcore|ox_lib|default|other] Notification script Compatibility
+	['progress_bar'] = "default",				-- [default|other] Progress Bar script Compatibility
 }
 
 Config.notification = {							-- (Only if notification is default)

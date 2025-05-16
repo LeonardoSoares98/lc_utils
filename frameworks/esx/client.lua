@@ -17,6 +17,8 @@ function Utils.Framework.giveVehicleKeys(vehicle, plate, model)
 		exports['Renewed-Vehiclekeys']:addKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "tgiann-hotwire" then
 		exports["tgiann-hotwire"]:SetNonRemoveableIgnition(vehicle, true)
+	elseif Config.custom_scripts_compatibility.keys == "okokGarage" then
+		TriggerServerEvent("okokGarage:GiveKeys", plate)
 	elseif Config.custom_scripts_compatibility.keys == "default" then
 		-- As far as I know, the ESX dont have a default key script
 	else
@@ -35,6 +37,9 @@ function Utils.Framework.removeVehicleKeys(vehicle)
 		exports['Renewed-Vehiclekeys']:removeKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "MrNewbVehicleKeys" then
 		exports.MrNewbVehicleKeys:RemoveKeys(vehicle)
+	elseif Config.custom_scripts_compatibility.keys == "okokGarage" then
+		local serverId = GetPlayerServerId(PlayerId())
+		TriggerServerEvent("okokGarage:RemoveKeys", plate, serverId)
 	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" or Config.custom_scripts_compatibility.keys == "tgiann-hotwire"  then
 		-- Do nothing :)
 	else
@@ -51,6 +56,9 @@ function Utils.Framework.removeVehicleKeysFromPlate(plate,model)
 		exports['Renewed-Vehiclekeys']:removeKey(plate)
 	elseif Config.custom_scripts_compatibility.keys == "MrNewbVehicleKeys" then
 		exports.MrNewbVehicleKeys:RemoveKeysByPlate(plate)
+	elseif Config.custom_scripts_compatibility.keys == "okokGarage" then
+		local serverId = GetPlayerServerId(PlayerId())
+		TriggerServerEvent("okokGarage:RemoveKeys", plate, serverId)
 	elseif Config.custom_scripts_compatibility.keys == "default" or Config.custom_scripts_compatibility.keys == "cd_garage" or Config.custom_scripts_compatibility.keys == "jaksam" or Config.custom_scripts_compatibility.keys == "tgiann-hotwire"  then
 		-- Do nothing :)
 	else

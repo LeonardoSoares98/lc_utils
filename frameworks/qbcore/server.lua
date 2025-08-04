@@ -487,6 +487,8 @@ function Utils.Framework.generatePlate(plate_format)
 	if isDuplicate == 1 then
 		generatedPlate = Utils.Framework.generatePlate(plateFormat)
 	end
+	-- Trim any leading/trailing spaces before returning
+	generatedPlate = generatedPlate:match('^%s*(.-)%s*$')
 	return generatedPlate
 end
 

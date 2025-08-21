@@ -59,6 +59,10 @@ Config.spawned_vehicles = {						-- Config for the vehicles that are spawned in 
 	['lc_fishing_simulator'] = {
 		['is_static'] = false,
 		['plate_prefix'] = "FS"
+	},
+	['lc_farming_simulator'] = {
+		['is_static'] = false,
+		['plate_prefix'] = "FS"
 	}
 }
 

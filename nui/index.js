@@ -292,8 +292,7 @@ const exampleConfig = {
 };
 */
 Utils.showCustomModal = function (config) {
-    // Check if the modal already exists
-    const $existingModal = $("#confirmation-modal");
+	const $existingModal = $("#confirmation-modal");
     if ($existingModal.length > 0) {
         return;
     }
@@ -308,6 +307,31 @@ Utils.showCustomModal = function (config) {
     const mergedConfig = { ...modalConfig };
     Utils.deepMerge(mergedConfig, config);
 
+    // Custom modal template with dynamic dialogClass
+    const dialogClass = mergedConfig.dialogClass || 'modal-dialog modal-dialog-centered';
+    const modalTemplate = `
+        <div id="confirmation-modal" class="modal fade">
+            <div class="${dialogClass}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="modal-close-btn">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="form-confirmation-modal" style="margin: 0;">
+                        <div class="modal-body">
+                            
+                        </div>
+                        <div class="modal-footer">
+                            
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+
     // Append the modal HTML to the body
     $("body").append(modalTemplate);
 
@@ -317,6 +341,16 @@ Utils.showCustomModal = function (config) {
 
     // Set modal content
     $modal.find(".modal-title").text(mergedConfig.title);
+
+    // Set custom close button behavior
+    const $closeBtn = $modal.find("#modal-close-btn");
+    if (mergedConfig.onClose && typeof mergedConfig.onClose === 'function') {
+        $closeBtn.off('click').on('click', function(e) {
+            e.preventDefault();
+            mergedConfig.onClose();
+            $modal.modal('hide');
+        });
+    }
 
     if (mergedConfig.bodyImage) {
         const $imageContainer = $("<div>", { class: "d-flex justify-content-center m-2" });

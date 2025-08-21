@@ -51,11 +51,13 @@ if context == 'client' then
 	loadFile('functions/client/scaleform.lua')
 	loadFile('functions/client/target.lua')
 	loadFile('functions/client/vehicles.lua')
+	loadFile('functions/client/zones.lua')
 	loadFile('frameworks/esx/client.lua')
 	loadFile('frameworks/qbcore/client.lua')
 	loadFile('custom_scripts/client/fuel.lua')
 	loadFile('custom_scripts/client/keys.lua')
 	loadFile('custom_scripts/client/notification.lua')
+	loadFile('custom_scripts/client/progress_bar.lua')
 	loadFile('custom_scripts/client/target.lua')
 elseif context == 'server' then
 	loadFile('functions/server/callback.lua')

@@ -21,4 +21,8 @@ Utils.Lang['en'] = {
 		['warning'] = "Warning",
 		['info'] = "Info",
 	},
+
+    ['progress_bar'] = {
+        ['default_text'] = "Loading..."
+    },
 }

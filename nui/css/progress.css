@@ -1,0 +1,47 @@
+#progress-bar-wrapper {
+    position: fixed;
+    left: 50%;
+    bottom: 8%;
+    transform: translateX(-50%) scale(0);
+    width: 350px;
+
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+
+    background: rgba(0, 0, 0, 0.425);
+    color: white;
+    font-weight: 600;
+
+    padding: 15px;
+    border-radius: 10px;
+}
+#progress-bar-wrapper.active {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+}
+#progress-bar-wrapper .loading-bar {
+    width: 100%;
+    height: 30px;
+    background: rgba(176, 181, 184, 0.144);
+    border-radius: 5px;
+}
+#progress-bar-wrapper .loading-bar .progress-bar {
+    width: 6%;
+    height: 100%;
+    background: #375a7f;
+    border-radius: 5px;
+}
+#progress-bar-wrapper .status {
+    margin-top: 10px;
+}
+#progress-bar-wrapper .status .state {
+    float: left;
+    font-size: 0.9em;
+    letter-spacing: 1pt;
+    width: 100px;
+    height: 20px;
+    position: relative;
+}
+#progress-bar-wrapper .status .percentage {
+    float: right;
+}

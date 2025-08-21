@@ -42,7 +42,7 @@ Citizen.CreateThread(function()
 				local latest_version = Utils.Math.trim(resultData)
 
 				api_response.latest_version = latest_version
-				if latest_version ~= Utils.Version then
+				if Utils.Math.checkIfCurrentVersionisOutdated(latest_version, Utils.Version) then
 					api_response.has_update = true
 					print("^4["..GetCurrentResourceName().."] An update is available, download it in https://github.com/LeonardoSoares98/lc_utils/releases/latest/download/lc_utils.zip^7 ^3[v"..api_response.latest_version.."]^7")
 				else

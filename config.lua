@@ -19,12 +19,13 @@ Config.format = {
 -- The "default" option will use the framework's default script
 -- ATTENTION: If you set it to "other," it's necessary to configure the script inside the custom_scripts folder in the respective file. See: https://docs.lixeirocharmoso.com/utils/adding_your_exports
 Config.custom_scripts_compatibility = {
-	['fuel'] = "default",						-- [ox_fuel|ps-fuel|sna-fuel|cdn-fuel|LegacyFuel|default|other] Fuel script Compatibility
-	['inventory'] = "default",					-- [ox_inventory|qs-inventory|ps-inventory|default|other] Inventory script Compatibility
-	['keys'] = "default",						-- [qs-vehiclekeys|cd_garage|jaksam|wasabi_carlock|MrNewbVehicleKeys|default|other] Keys script Compatibility
-	['mdt'] = "default",						-- [ps-mdt|redutzu-mdt|default|other] MDT script Compatibility (to log weapon serial)
+	['fuel'] = "default",						-- [lc_fuel|ox_fuel|ti_fuel|ps-fuel|sna-fuel|cdn-fuel|LegacyFuel|okokGasStation|default|other] Fuel script Compatibility
+	['inventory'] = "default",					-- [ox_inventory|qs-inventory|ps-inventory|tgiann-inventory|default|other] Inventory script Compatibility
+	['keys'] = "default",						-- [qs-vehiclekeys|cd_garage|jaksam|wasabi_carlock|MrNewbVehicleKeys|tgiann-hotwire|Renewed|okokGarage|default|other] Keys script Compatibility
+	['mdt'] = "default",						-- [ps-mdt|redutzu-mdt|lb-tablet|default|other] MDT script Compatibility (to log weapon serial)
 	['target'] = "disabled",					-- [qb-target|ox_target|disabled|other] Target script Compatibility (disabled will use markers)
 	['notification'] = "default",				-- [okokNotify|qbcore|ox_lib|default|other] Notification script Compatibility
+	['progress_bar'] = "default",				-- [default|other] Progress Bar script Compatibility
 }
 
 Config.notification = {							-- (Only if notification is default)

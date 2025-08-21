@@ -285,6 +285,7 @@ Utils.showCustomModal = function (config) {
         buttons: [],
         inputs: [],
     };
+	
 
     // Merge the provided config with the default modalConfig
     const mergedConfig = { ...modalConfig };

@@ -275,135 +275,169 @@ const exampleConfig = {
 };
 */
 Utils.showCustomModal = function (config) {
-	// Check if the modal already exists
 	const $existingModal = $("#confirmation-modal");
-	if ($existingModal.length > 0) {
-		return;
-	}
+    if ($existingModal.length > 0) {
+        return;
+    }
 
-	const modalConfig = {
-		title: Utils.translate("confirmation_modal_title"),
-		buttons: [],
-		inputs: [],
-	};
+    const modalConfig = {
+        title: Utils.translate("confirmation_modal_title"),
+        buttons: [],
+        inputs: [],
+    };
 
-	// Merge the provided config with the default modalConfig
-	const mergedConfig = { ...modalConfig };
-	Utils.deepMerge(mergedConfig, config);
+    // Merge the provided config with the default modalConfig
+    const mergedConfig = { ...modalConfig };
+    Utils.deepMerge(mergedConfig, config);
 
-	// Append the modal HTML to the body
-	$("body").append(modalTemplate);
+    // Custom modal template with dynamic dialogClass
+    const dialogClass = mergedConfig.dialogClass || 'modal-dialog modal-dialog-centered';
+    const modalTemplate = `
+        <div id="confirmation-modal" class="modal fade">
+            <div class="${dialogClass}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="modal-close-btn">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="form-confirmation-modal" style="margin: 0;">
+                        <div class="modal-body">
+                            
+                        </div>
+                        <div class="modal-footer">
+                            
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
 
-	// Cache the modal element
-	const $modal = $("#confirmation-modal");
-	const $modalBody = $modal.find(".modal-body");
+    // Append the modal HTML to the body
+    $("body").append(modalTemplate);
 
-	// Set modal content
-	$modal.find(".modal-title").text(mergedConfig.title);
+    // Cache the modal element
+    const $modal = $("#confirmation-modal");
+    const $modalBody = $modal.find(".modal-body");
 
-	if (mergedConfig.bodyImage) {
-		const $imageContainer = $("<div>", { class: "d-flex justify-content-center m-2" });
-		const $image = $("<img>", { src: mergedConfig.bodyImage, class: "w-50" });
-		$imageContainer.append($image);
-		$modalBody.append($imageContainer);
-	}
+    // Set modal content
+    $modal.find(".modal-title").text(mergedConfig.title);
 
-	if (mergedConfig.body) {
-		const $p = $("<p>", { id: "modal-body-text", text: mergedConfig.body });
-		$modalBody.append($p);
-	}
+    // Set custom close button behavior
+    const $closeBtn = $modal.find("#modal-close-btn");
+    if (mergedConfig.onClose && typeof mergedConfig.onClose === 'function') {
+        $closeBtn.off('click').on('click', function(e) {
+            e.preventDefault();
+            mergedConfig.onClose();
+            $modal.modal('hide');
+        });
+    }
 
-	if (mergedConfig.bodyHtml) {
-		$modalBody.append(mergedConfig.bodyHtml);
-	}
+    if (mergedConfig.bodyImage) {
+        const $imageContainer = $("<div>", { class: "d-flex justify-content-center m-2" });
+        const $image = $("<img>", { src: mergedConfig.bodyImage, class: "w-50" });
+        $imageContainer.append($image);
+        $modalBody.append($imageContainer);
+    }
 
-	// Set modal inputs
-	const $form = $modal.find("#form-confirmation-modal");
-	mergedConfig.inputs.forEach(inputConfig => {
-		const $inputContainer = $("<div>", { class: "form-group mx-2" });
+    if (mergedConfig.body) {
+        const $p = $("<p>", { id: "modal-body-text", text: mergedConfig.body });
+        $modalBody.append($p);
+    }
 
-		if (inputConfig.type === "select") {
-			const $label = $("<label>", { text: inputConfig.label, for: inputConfig.id });
-			const $select = $("<select>", { class: "form-control", id: inputConfig.id, name: inputConfig.name, required: inputConfig.required });
-			if (!Array.isArray(inputConfig.options)) {
-				inputConfig.options = Object.values(inputConfig.options);
-			}
-			inputConfig.options.forEach(option => {
-				const $option = $("<option>", { value: option.value, text: option.text });
-				$select.append($option);
-			});
-			$inputContainer.append($label, $select);
-		} else if (inputConfig.type === "checkbox") {
-			const $checkboxContainer = $("<div>", { class: "form-check" });
-			const $label = $("<label>", { for: inputConfig.id, class: "form-check-label" });
-			const $input = $("<input>", { type: "checkbox", class: "form-check-input", id: inputConfig.id, name: inputConfig.name, required: inputConfig.required });
-			$label.text(inputConfig.label);
-			$inputContainer.append($checkboxContainer.append($input, $label));
-		} else if (inputConfig.type === "slider" || inputConfig.type === "range") {
-			const $label = $("<label>", { text: inputConfig.label, for: inputConfig.id });
-			if (!inputConfig.default) {
-				inputConfig.default = inputConfig.max ?? 100;
-			}
-			let range_slider = `
-				<div class="range-slider mt-2" style='--min:${inputConfig.min || 0}; --max:${inputConfig.max || 100}; --step:${inputConfig.step || 1}; --value:${inputConfig.default}; --text-value:"${inputConfig.default}"; --prefix:"${inputConfig.isCurrency ? Utils.getCurrencySymbol() : ""} ";'>
-					<input id="${inputConfig.id}" name="${inputConfig.name}" type="range" min="${inputConfig.min || 0}" max="${inputConfig.max || 100}" step="${inputConfig.step || 1}" value="${inputConfig.default}" oninput="this.parentNode.style.setProperty('--value',this.value); this.parentNode.style.setProperty('--text-value', JSON.stringify(this.value))">
-					<output></output>
-					<div class='range-slider__progress'></div>
-				</div>`;
-			$inputContainer.append($label, range_slider);
-		} else if (inputConfig.type === "custom") {
-			const $customInput = $(inputConfig.html);
-			$inputContainer.append($customInput);
-		} else {
-			const $label = $("<label>", { text: inputConfig.label, for: inputConfig.id });
-			const $input = $("<input>", { type: inputConfig.type, class: "form-control", id: inputConfig.id, name: inputConfig.name, required: inputConfig.required, placeholder: inputConfig.placeholder, min: inputConfig.min, max: inputConfig.max, value: inputConfig.value });
-			$inputContainer.append($label, $input);
-		}
-		if (inputConfig.small) {
-			const $small = $("<small>", { text: inputConfig.small, class: "text-muted", style: "font-size: 12px;" });
-			$inputContainer.append($small);
-		}
-		$modalBody.append($inputContainer);
-	});
+    if (mergedConfig.bodyHtml) {
+        $modalBody.append(mergedConfig.bodyHtml);
+    }
 
-	if (mergedConfig.footerText) {
-		const $p = $("<p>", { id: "modal-footer-text", text: mergedConfig.footerText });
-		$modalBody.append($p);
-	}
+    // Set modal inputs
+    const $form = $modal.find("#form-confirmation-modal");
+    mergedConfig.inputs.forEach(inputConfig => {
+        const $inputContainer = $("<div>", { class: "form-group mx-2" });
 
-	// Set modal buttons
-	const $footer = $modal.find(".modal-footer");
-	$footer.empty();
-	mergedConfig.buttons.forEach(button => {
-		const $button = $("<button>", { class: button.class, text: button.text, type: button.type ?? "button" });
-		if (button.dismiss) {
-			$button.attr("data-dismiss", "modal");
-		}
-		if (button.action) {
-			$button.on("click", button.action);
-		}
-		$footer.append($button);
-	});
+        if (inputConfig.type === "select") {
+            const $label = $("<label>", { text: inputConfig.label, for: inputConfig.id });
+            const $select = $("<select>", { class: "form-control", id: inputConfig.id, name: inputConfig.name, required: inputConfig.required });
+            if (!Array.isArray(inputConfig.options)) {
+                inputConfig.options = Object.values(inputConfig.options);
+            }
+            inputConfig.options.forEach(option => {
+                const $option = $("<option>", { value: option.value, text: option.text });
+                $select.append($option);
+            });
+            $inputContainer.append($label, $select);
+        } else if (inputConfig.type === "checkbox") {
+            const $checkboxContainer = $("<div>", { class: "form-check" });
+            const $label = $("<label>", { for: inputConfig.id, class: "form-check-label" });
+            const $input = $("<input>", { type: "checkbox", class: "form-check-input", id: inputConfig.id, name: inputConfig.name, required: inputConfig.required });
+            $label.text(inputConfig.label);
+            $inputContainer.append($checkboxContainer.append($input, $label));
+        } else if (inputConfig.type === "slider" || inputConfig.type === "range") {
+            const $label = $("<label>", { text: inputConfig.label, for: inputConfig.id });
+            if (!inputConfig.default) {
+                inputConfig.default = inputConfig.max ?? 100;
+            }
+            let range_slider = `
+                <div class="range-slider mt-2" style='--min:${inputConfig.min || 0}; --max:${inputConfig.max || 100}; --step:${inputConfig.step || 1}; --value:${inputConfig.default}; --text-value:"${inputConfig.default}"; --prefix:"${inputConfig.isCurrency ? Utils.getCurrencySymbol() : ""} ";'>
+                    <input id="${inputConfig.id}" name="${inputConfig.name}" type="range" min="${inputConfig.min || 0}" max="${inputConfig.max || 100}" step="${inputConfig.step || 1}" value="${inputConfig.default}" oninput="this.parentNode.style.setProperty('--value',this.value); this.parentNode.style.setProperty('--text-value', JSON.stringify(this.value))">
+                    <output></output>
+                    <div class='range-slider__progress'></div>
+                </div>`;
+            $inputContainer.append($label, range_slider);
+        } else if (inputConfig.type === "custom") {
+            const $customInput = $(inputConfig.html);
+            $inputContainer.append($customInput);
+        } else {
+            const $label = $("<label>", { text: inputConfig.label, for: inputConfig.id });
+            const $input = $("<input>", { type: inputConfig.type, class: "form-control", id: inputConfig.id, name: inputConfig.name, required: inputConfig.required, placeholder: inputConfig.placeholder, min: inputConfig.min, max: inputConfig.max, value: inputConfig.value });
+            $inputContainer.append($label, $input);
+        }
+        if (inputConfig.small) {
+            const $small = $("<small>", { text: inputConfig.small, class: "text-muted", style: "font-size: 12px;" });
+            $inputContainer.append($small);
+        }
+        $modalBody.append($inputContainer);
+    });
 
-	// Set modal form submit
-	$form.on("submit", function (e) {
-		e.preventDefault();
+    if (mergedConfig.footerText) {
+        const $p = $("<p>", { id: "modal-footer-text", text: mergedConfig.footerText });
+        $modalBody.append($p);
+    }
 
-		if (config.onSubmit) {
-			config.onSubmit(new FormData(e.target));
-		}
-		$modal.modal("hide");
-	});
+    // Set modal buttons
+    const $footer = $modal.find(".modal-footer");
+    $footer.empty();
+    mergedConfig.buttons.forEach(button => {
+        const $button = $("<button>", { class: button.class, text: button.text, type: button.type ?? "button" });
+        if (button.dismiss) {
+            $button.attr("data-dismiss", "modal");
+        }
+        if (button.action) {
+            $button.on("click", button.action);
+        }
+        $footer.append($button);
+    });
 
-	// Show the modal
-	$modal.modal({ show: true });
+    // Set modal form submit
+    $form.on("submit", function (e) {
+        e.preventDefault();
 
-	// Remove the modal from the DOM when hidden
-	$modal.on("hidden.bs.modal", function () {
-		setTimeout(() => {
-			$(this).remove();
-		}, 50);
-	});
+        if (config.onSubmit) {
+            config.onSubmit(new FormData(e.target));
+        }
+        $modal.modal("hide");
+    });
+
+    // Show the modal
+    $modal.modal({ show: true });
+
+    // Remove the modal from the DOM when hidden
+    $modal.on("hidden.bs.modal", function () {
+        setTimeout(() => {
+            $(this).remove();
+        }, 50);
+    });
 };
 
 Utils.deepMerge = function (target, source) {

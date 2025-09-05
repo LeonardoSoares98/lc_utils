@@ -350,6 +350,10 @@ Utils.showCustomModal = function (config) {
             mergedConfig.onClose();
             $modal.modal('hide');
         });
+    
+        $modal.on("hide.bs.modal", function (e) {
+            mergedConfig.onClose();
+        });
     }
 
     if (mergedConfig.bodyImage) {

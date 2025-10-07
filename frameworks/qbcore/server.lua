@@ -202,20 +202,25 @@ function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
 	elseif Config.custom_scripts_compatibility.mdt == "lb-tablet" then
 		local xPlayer = QBCore.Functions.GetPlayer(source)
 		metadata = metadata or {}
-		if Config.custom_scripts_compatibility.inventory == 'ox_inventory' then
-			metadata.serial = metadata.serial or ('%s%s%s'):format(math.random(100000,999999), QBCore.Shared.RandomStr(3), math.random(100000,999999))
+
+		-- Generate serial
+		metadata.serial = metadata.serial or ('%s%s%s'):format(
+			math.random(100000, 999999),
+			QBCore.Shared.RandomStr(3),
+			math.random(100000, 999999)
+		)
+
+		-- First: give the weapon to the player
+		if Utils.Framework.insertWeaponInInventory(source, item, amount, metadata) then
+			-- Then: register it in lb-tablet
 			exports["lb-tablet"]:RegisterWeapon(metadata.serial, {
 				owner = xPlayer.PlayerData.citizenid,
 				weaponName = item
 			})
-		else
-			metadata.serial = metadata.serial or tostring(QBCore.Shared.RandomInt(2) .. QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(1) .. QBCore.Shared.RandomStr(2) .. QBCore.Shared.RandomInt(3) .. QBCore.Shared.RandomStr(4))
-			exports["lb-tablet"]:RegisterWeapon(metadata.serial, {
-				owner = xPlayer.PlayerData.citizenid,
-				weaponName = item
-			})
+			TriggerClientEvent('QBCore:Notify', source, 'Weapon Registered', 'success')
 			return true
 		end
+
 		return false
 	elseif Config.custom_scripts_compatibility.mdt == "default" then
 		return Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)

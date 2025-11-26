@@ -91,15 +91,14 @@ Utils.currencyFormat = function (number, decimalPlaces = null) {
     return new Intl.NumberFormat(format.location, options).format(number);
 };
 
-Utils.numberFormat = function (number, decimalPlaces = null) {
-    const options = {};
+Utils.numberFormat = function (number, decimalPlaces = 0) {
+    const factor = Math.pow(10, decimalPlaces);
+    const rounded = Math.round(number * factor) / factor;
 
-    if (decimalPlaces != null) {
-        options.minimumFractionDigits = decimalPlaces;
-        options.maximumFractionDigits = decimalPlaces;
-    }
-
-    return new Intl.NumberFormat(format.location, options).format(number);
+    return new Intl.NumberFormat(format.location, {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+    }).format(rounded);
 };
 
 Utils.getCurrencySymbol = function () {

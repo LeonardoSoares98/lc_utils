@@ -507,15 +507,65 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 function Utils.Framework.getTopTruckers()
-	local sql = [[SELECT U.charinfo, T.user_id, T.exp, T.traveled_distance 
-		FROM trucker_users T 
-		INNER JOIN players U ON T.user_id = U.citizenid
-		WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
-	local result = Utils.Database.fetchAll(sql,{});
-	for k,v in ipairs(result) do
-		result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
-	end
-	return result
+    local sql = [[SELECT U.charinfo, T.user_id, T.exp, T.traveled_distance 
+        FROM trucker_users T 
+        INNER JOIN players U ON T.user_id = U.citizenid
+        WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Weekly leaderboard (current ISO week)
+function Utils.Framework.getTopTruckersWeek()
+    local sql = [[SELECT U.charinfo, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN players U ON D.user_id = U.citizenid
+        WHERE YEARWEEK(FROM_UNIXTIME(D.delivered_at), 1) = YEARWEEK(CURDATE(), 1)
+        GROUP BY D.user_id, U.charinfo
+        ORDER BY traveled_distance DESC
+        LIMIT 10;]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Monthly leaderboard (current month)
+function Utils.Framework.getTopTruckersMonth()
+    local sql = [[SELECT U.charinfo, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN players U ON D.user_id = U.citizenid
+        WHERE YEAR(FROM_UNIXTIME(D.delivered_at)) = YEAR(CURDATE())
+          AND MONTH(FROM_UNIXTIME(D.delivered_at)) = MONTH(CURDATE())
+        GROUP BY D.user_id, U.charinfo
+        ORDER BY traveled_distance DESC
+        LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Seasonal leaderboard (deliveries within [season_start_ts, season_end_ts))
+function Utils.Framework.getTopTruckersSeason(season_start_ts, season_end_ts)
+    local sql = [[SELECT U.charinfo, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN players U ON D.user_id = U.citizenid
+        WHERE D.delivered_at >= @start_ts AND D.delivered_at < @end_ts
+        GROUP BY D.user_id, U.charinfo
+        ORDER BY traveled_distance DESC
+        LIMIT 10]]
+    local params = {['@start_ts'] = tonumber(season_start_ts) or 0, ['@end_ts'] = tonumber(season_end_ts) or 0}
+    local result = Utils.Database.fetchAll(sql, params);
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
 end
 
 function Utils.Framework.getpartyMembers(party_id)

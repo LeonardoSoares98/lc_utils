@@ -561,11 +561,49 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 function Utils.Framework.getTopTruckers()
-	local sql = [[SELECT U.lastname as name, U.firstname, T.user_id, T.exp, T.traveled_distance 
-		FROM trucker_users T 
-		INNER JOIN users U ON T.user_id = U.identifier
-		WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
-	return Utils.Database.fetchAll(sql,{});
+    local sql = [[SELECT U.lastname as name, U.firstname, T.user_id, T.exp, T.traveled_distance 
+        FROM trucker_users T 
+        INNER JOIN users U ON T.user_id = U.identifier
+        WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
+    return Utils.Database.fetchAll(sql,{});
+end
+
+-- Weekly leaderboard (current ISO week)
+function Utils.Framework.getTopTruckersWeek()
+    local sql = [[SELECT U.lastname as name, U.firstname, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN users U ON D.user_id = U.identifier
+        WHERE YEARWEEK(FROM_UNIXTIME(D.delivered_at), 1) = YEARWEEK(CURDATE(), 1)
+        GROUP BY D.user_id, U.lastname, U.firstname
+        ORDER BY traveled_distance DESC
+        LIMIT 10]];
+    return Utils.Database.fetchAll(sql,{});
+end
+
+-- Monthly leaderboard (current month)
+function Utils.Framework.getTopTruckersMonth()
+    local sql = [[SELECT U.lastname as name, U.firstname, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN users U ON D.user_id = U.identifier
+        WHERE YEAR(FROM_UNIXTIME(D.delivered_at)) = YEAR(CURDATE())
+          AND MONTH(FROM_UNIXTIME(D.delivered_at)) = MONTH(CURDATE())
+        GROUP BY D.user_id, U.lastname, U.firstname
+        ORDER BY traveled_distance DESC
+        LIMIT 10]];
+    return Utils.Database.fetchAll(sql,{});
+end
+
+-- Seasonal leaderboard (deliveries within [season_start_ts, season_end_ts))
+function Utils.Framework.getTopTruckersSeason(season_start_ts, season_end_ts)
+    local sql = [[SELECT U.lastname as name, U.firstname, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN users U ON D.user_id = U.identifier
+        WHERE D.delivered_at >= @start_ts AND D.delivered_at < @end_ts
+        GROUP BY D.user_id, U.lastname, U.firstname
+        ORDER BY traveled_distance DESC
+        LIMIT 10]]
+    local params = {['@start_ts'] = tonumber(season_start_ts) or 0, ['@end_ts'] = tonumber(season_end_ts) or 0}
+    return Utils.Database.fetchAll(sql, params);
 end
 
 function Utils.Framework.getpartyMembers(party_id)

@@ -14,7 +14,9 @@ Follow these simple steps to install:
 ## Configuration
 Before using the script, it's important to configure the necessary settings:
 
-1. Choose your preferred framework: ESX or QBCore.
+1. Choose your preferred framework: ESX, QBCore, or none (standalone).
+   Standalone note: if you leave `custom_scripts_compatibility` values as `default`/`disabled`,
+   they auto-switch to `lc_fuel` (fuel), `ox_lib` (notification), and `ox_target` (target).
 2. Read through the config.lua file provided in this resource.
 3. Customize the settings according to your server's requirements.
 

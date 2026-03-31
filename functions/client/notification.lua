@@ -1,10 +1,10 @@
-function notify(type,message)
+function notify(type,message,duration)
 	assert(type == "success" or type == "error" or type == "warning" or type == "info", ("Notification Type Mismatch: The accepted types include success, error, warning, and info. The received type is %s."):format(type))
 	if Config.custom_scripts_compatibility.notification == "okokNotify" then
-		exports['okokNotify']:Alert(Utils.String.capitalizeFirst(type), message, 8000, type, false)
+		exports['okokNotify']:Alert(Utils.String.capitalizeFirst(type), message, (duration or Config.notification.duration), type, false)
 	elseif Config.custom_scripts_compatibility.notification == "qbcore" then
 		QBCore = exports['qb-core']:GetCoreObject()
-		QBCore.Functions.Notify(message, type, 8000)
+		QBCore.Functions.Notify(message, type, (duration or Config.notification.duration))
 	elseif Config.custom_scripts_compatibility.notification == "ox_lib" then
 		exports.ox_lib:notify({
 			title = Utils.String.capitalizeFirst(type),
@@ -19,7 +19,7 @@ function notify(type,message)
 		SendNUIMessage({
 			notification = message,
 			notification_type = type,
-			duration = Config.notification.duration,
+			duration = (duration or Config.notification.duration),
 			position = Config.notification.position,
 			title = title
 		})

@@ -581,6 +581,73 @@ function Utils.Framework.getpartyMembers(party_id)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- Farming
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.getTopFarmers()
+    local sql = [[SELECT U.charinfo, FS.user_id, FU.exp, FS.total_crops_harvested 
+        FROM farming_simulator_stats FS 
+		INNER JOIN farming_simulator_users FU ON FS.user_id = FU.user_id
+        INNER JOIN players U ON FS.user_id = U.citizenid
+        WHERE FS.total_crops_harvested > 0 ORDER BY FS.total_crops_harvested DESC LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Weekly leaderboard (current ISO week)
+function Utils.Framework.getTopFarmersWeek()
+    local sql = [[SELECT U.charinfo, FH.user_id, SUM(FH.exp) AS exp, SUM(FH.amount) AS total_crops_harvested
+        FROM farming_simulator_daily_harvests FH
+        INNER JOIN players U ON FH.user_id = U.citizenid
+        WHERE YEARWEEK(FROM_UNIXTIME(FH.unix_days), 1) = YEARWEEK(CURDATE(), 1)
+        GROUP BY FH.user_id, U.charinfo
+        ORDER BY total_crops_harvested DESC
+        LIMIT 10;]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Monthly leaderboard (current month)
+function Utils.Framework.getTopFarmersMonth()
+    local sql = [[SELECT U.charinfo, FH.user_id, SUM(FH.exp) AS exp, SUM(FH.amount) AS total_crops_harvested
+        FROM farming_simulator_daily_harvests FH
+        INNER JOIN players U ON FH.user_id = U.citizenid
+        WHERE YEAR(FROM_UNIXTIME(FH.unix_days)) = YEAR(CURDATE())
+          AND MONTH(FROM_UNIXTIME(FH.unix_days)) = MONTH(CURDATE())
+        GROUP BY FH.user_id, U.charinfo
+        ORDER BY total_crops_harvested DESC
+        LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Seasonal leaderboard (deliveries within [season_start_ts, season_end_ts))
+function Utils.Framework.getTopFarmersSeason(season_start_ts, season_end_ts)
+    local sql = [[SELECT U.charinfo, FH.user_id, SUM(FH.exp) AS exp, SUM(FH.amount) AS total_crops_harvested
+        FROM farming_simulator_daily_harvests FH
+        INNER JOIN players U ON FH.user_id = U.citizenid
+        WHERE FH.unix_days >= @start_ts AND FH.unix_days < @end_ts
+        GROUP BY FH.user_id, U.charinfo
+        ORDER BY total_crops_harvested DESC
+        LIMIT 10]]
+    local params = {['@start_ts'] = tonumber(season_start_ts) or 0, ['@end_ts'] = tonumber(season_end_ts) or 0}
+    local result = Utils.Database.fetchAll(sql, params);
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- Fisher
 -----------------------------------------------------------------------------------------------------------------------------------------
 

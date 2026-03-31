@@ -291,7 +291,7 @@ const exampleConfig = {
 };
 */
 Utils.showCustomModal = function (config) {
-	const $existingModal = $("#confirmation-modal");
+    const $existingModal = $("#confirmation-modal");
     if ($existingModal.length > 0) {
         return;
     }
@@ -607,6 +607,26 @@ Utils.convertFileToBase64 = function (file, callback) {
         callback(e.target.result);
     };
     reader.readAsDataURL(file);
+};
+
+Utils.shrinkTextToFit = function($el, maxSize = 48, minSize = 20) {
+    if (!$el || !$el.length) return;
+    if (!$el.is(":visible")) return;
+
+    // Start from the largest size every time we render, then shrink until it fits.
+    let size = maxSize;
+    $el.css("font-size", `${size}px`);
+    const el = $el[0];
+
+    if (el.clientWidth === 0) return;
+
+    while (el.scrollWidth > el.clientWidth && size > minSize) {
+        size -= 1;
+        $el.css("font-size", `${size}px`);
+    }
+    // Still decrease one more px to ensure it fits the container
+    size -= 1;
+    $el.css("font-size", `${size}px`);
 };
 
 $(function () {

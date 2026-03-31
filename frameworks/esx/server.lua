@@ -19,7 +19,11 @@ end
 
 -- Framework functions
 function Utils.Framework.getPlayers()
-	return ESX.GetPlayers()
+	local players = ESX.GetPlayers()
+	for k, v in pairs(players) do
+		players[k] = tonumber(v)
+	end
+	return players
 end
 
 function Utils.Framework.getPlayerId(source)

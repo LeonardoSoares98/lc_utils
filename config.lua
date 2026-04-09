@@ -1,6 +1,6 @@
 Config = Config or {}
 
-Config.framework = "QBCore"						-- [ESX|QBCore] Your framework
+Config.framework = "QBCore"						-- [ESX|QBCore|none] Your framework ("none" = standalone, no framework hooks)
 
 Config.ESX_settings = {							-- (ESX Only) ESX settings
 	['is_updated'] = true,						-- Set to false if your ESX uses the getSharedObject event (usually for ESX versions older than 1.9.0)
@@ -16,7 +16,9 @@ Config.format = {
 }
 
 -- Here, you can easily switch between the available script compatibilities.
--- The "default" option will use the framework's default script
+-- The "default" option will use the framework's default script.
+-- Standalone note: if Config.framework is "none"/"standalone" and you keep values as "default"/"disabled",
+-- they will automatically switch to lc_fuel (fuel), ox_lib (notification), and ox_target (target).
 -- ATTENTION: If you set it to "other," it's necessary to configure the script inside the custom_scripts folder in the respective file. See: https://docs.lixeirocharmoso.com/utils/adding_your_exports
 Config.custom_scripts_compatibility = {
 	['fuel'] = "default",						-- [lc_fuel|ox_fuel|ti_fuel|ps-fuel|sna-fuel|cdn-fuel|LegacyFuel|okokGasStation|default|other] Fuel script Compatibility

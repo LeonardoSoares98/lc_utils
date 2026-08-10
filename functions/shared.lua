@@ -7,6 +7,59 @@ Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = {}
 Utils.Version = LoadResourceFile("lc_utils", "version") and string.gsub(LoadResourceFile("lc_utils", "version"), '^%s*(.-)%s*$', '%1') or nil
+Utils.Framework = Utils.Framework or {}
+Utils.FrameworkStandalone = Utils.FrameworkStandalone or {
+	isStandalone = true,
+}
+
+local applyStandaloneDefaults
+
+function Utils.FrameworkStandalone.setVehicleFuel(...)
+	local vehicle, plate, model, fuel = ...
+	if Config.custom_scripts_compatibility.fuel == "ox_fuel" then
+		Entity(vehicle).state.fuel = fuel
+	elseif Config.custom_scripts_compatibility.fuel == "ti_fuel" then
+		exports['ti_fuel']:setFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "lc_fuel" then
+		exports['lc_fuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "ps-fuel" then
+		exports['ps-fuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "sna-fuel" or Config.custom_scripts_compatibility.fuel == "qb-sna-fuel" or Config.custom_scripts_compatibility.fuel == "esx-sna-fuel" then
+		local exportName = Config.custom_scripts_compatibility.fuel == "esx-sna-fuel" and 'esx-sna-fuel' or 'qb-sna-fuel'
+		exports[exportName]:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "cdn-fuel" then
+		exports['cdn-fuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "LegacyFuel" then
+		exports['LegacyFuel']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "okokGasStation" then
+		exports['okokGasStation']:SetFuel(vehicle, fuel)
+	elseif Config.custom_scripts_compatibility.fuel == "default" then
+		SetVehicleFuelLevel(vehicle, fuel + 0.0)
+	else
+		Utils.CustomScripts.setVehicleFuel(vehicle, plate, model, fuel)
+	end
+end
+
+function Utils.FrameworkStandalone.giveVehicleKeys(...)
+	-- Standalone mode: no framework integration.
+end
+
+function Utils.FrameworkStandalone.removeVehicleKeys(...)
+	-- Standalone mode: no framework integration.
+end
+
+function Utils.FrameworkStandalone.removeVehicleKeysFromPlate(...)
+	-- Standalone mode: no framework integration.
+end
+
+function Utils.FrameworkStandalone.insertWeaponInInventory(...)
+	-- Standalone mode: no framework integration.
+	return false
+end
+
+if Config and (Config.framework == "none" or Config.framework == "standalone") then
+	Utils.Framework = Utils.FrameworkStandalone
+end
 
 exports('GetUtils', function()
 	return Utils
@@ -340,7 +393,13 @@ Citizen.CreateThread(function()
 	end
 
 	assert(Config, "^3You have errors in your config file, consider fixing it or redownload the original config.^7")
-	assert(Config.framework == "QBCore" or Config.framework == "ESX", string.format("^3The Config.framework must be set to ^1ESX^3 or ^1QBCore^3, its actually set to ^1%s^3.^7", Config.framework))
+	local valid_frameworks = {
+		QBCore = true,
+		ESX = true,
+		none = true,
+		standalone = true,
+	}
+	assert(valid_frameworks[Config.framework], string.format("^3The Config.framework must be set to ^1ESX^3, ^1QBCore^3, or ^1none^3 (standalone), its actually set to ^1%s^3.^7", Config.framework))
 
 	local configs_to_validate = {
 		{ config_path = {"custom_scripts_compatibility"}, default_value = {	['fuel'] = "default", ['inventory'] = "default", ['keys'] = "default", ['mdt'] = "default", ['target'] = "disabled", ['notification'] = "default"} },
@@ -372,6 +431,7 @@ Citizen.CreateThread(function()
 		} },
 	}
 	Config = Utils.validateConfig(Config, configs_to_validate)
+	applyStandaloneDefaults()
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -424,6 +484,29 @@ function Utils.validateConfig(_Config, configs_to_validate)
 	end
 	return _Config
 end
+
+applyStandaloneDefaults = function()
+	if not Config then return end
+	if Config.framework ~= "none" and Config.framework ~= "standalone" then
+		return
+	end
+
+	Config.custom_scripts_compatibility = Config.custom_scripts_compatibility or {}
+	local compat = Config.custom_scripts_compatibility
+
+	if compat.fuel == nil or compat.fuel == "default" then
+		compat.fuel = "lc_fuel"
+	end
+	if compat.notification == nil or compat.notification == "default" then
+		compat.notification = "ox_lib"
+	end
+	if compat.target == nil or compat.target == "default" or compat.target == "disabled" then
+		compat.target = "ox_target"
+	end
+end
+
+-- Apply immediately so other files see standalone defaults at load time.
+applyStandaloneDefaults()
 
 function getConfigEntry(_Config, path)
 	for _, key in ipairs(path) do

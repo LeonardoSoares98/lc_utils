@@ -300,11 +300,11 @@ end
 function Utils.translate(key)
 	local resource = getResourceName()
 	if not resource then
-		return 'missing_resource'
+		return ('missing_resource')
 	end
 
 	if not cached_langs[resource] then
-		return 'missing_lang'
+		return ('missing_lang:%s'):format(resource)
 	end
 
 	local locale = Config.locale
@@ -319,7 +319,7 @@ function Utils.translate(key)
 	for _, k in ipairs(keys) do
 		if not langObj[k] then
 			print(string.format("Translation key '%s' not found for language '%s'.", key, locale))
-			return 'missing_translation'
+			return ('missing_translation:%s:%s'):format(locale, key)
 		end
 		langObj = langObj[k]
 	end

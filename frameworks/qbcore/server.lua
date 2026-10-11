@@ -54,10 +54,14 @@ function Utils.Framework.getOnlinePlayers()
 	for i=1, #xPlayers, 1 do
 		local xPlayer = QBCore.Functions.GetPlayer(xPlayers[i])
 		if xPlayer then
+			local charinfo = xPlayer.PlayerData.charinfo
+			local name = (charinfo and charinfo.firstname and charinfo.lastname)
+				and (charinfo.firstname .. " " .. charinfo.lastname)
+				or Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
 			table.insert(players, {
 				source		= xPlayers[i],
 				identifier 	= xPlayer.PlayerData.citizenid,
-				name		= Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
+				name		= name
 			})
 		end
 	end

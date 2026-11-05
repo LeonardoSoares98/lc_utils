@@ -16,6 +16,7 @@ client_scripts {
 server_scripts {
 	"@mysql-async/lib/MySQL.lua",
 	"functions/server/*.lua",
+	"functions/server/*.js",
 	"custom_scripts/server/*.lua",
 	"frameworks/qbcore/server.lua",
 	"frameworks/esx/server.lua",

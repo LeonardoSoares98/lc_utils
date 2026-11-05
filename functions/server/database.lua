@@ -1,7 +1,8 @@
 Utils.Database = {}
 
+-- Returns the number of affected rows
 function Utils.Database.execute(sql,params)
-	MySQL.Sync.execute(sql, params)
+	return MySQL.Sync.execute(sql, params)
 end
 
 function Utils.Database.fetchAll(sql,params)

@@ -119,12 +119,22 @@ end
 -- Items
 -----------------------------------------------------------------------------------------------------------------------------------------
 
+-- The metadata of an inventory item. ox_inventory names it metadata; the qb-style inventories name it info and store "none" as an empty string.
+local function getItemMetadata(item)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
+		return item.metadata
+	end
+	if item.info == "" then return {} end
+	return item.info
+end
+
+-- One entry per stack: slot and metadata identify a single item (e.g. one with a serial number)
 function Utils.Framework.getPlayerInventory(source)
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	local player_inventory = {}
 	for k,v in pairs(xPlayer.PlayerData.items) do
 		v.amount = v.amount or v.count
-		table.insert(player_inventory, { amount = v.amount, name = string.lower(v.name), label = v.label })
+		table.insert(player_inventory, { amount = v.amount, name = string.lower(v.name), label = v.label, slot = v.slot, metadata = getItemMetadata(v) })
 	end
 	return player_inventory
 end
@@ -242,7 +252,46 @@ function Utils.Framework.playerHasItem(source,item,amount)
 	end
 end
 
-function Utils.Framework.getPlayerItem(source,item,amount)
+-- Removes the item from that slot only. Returns false when the slot doesn't hold at least this amount of the item.
+local function removePlayerItemFromSlot(source,item,amount,slot)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
+		-- ox_inventory takes the item from other slots when the given one doesn't hold it, so the slot is checked first
+		local slot_item = exports['ox_inventory']:GetSlot(source, slot)
+		if not slot_item or slot_item.name ~= item or slot_item.count < amount then
+			return false
+		end
+		return exports['ox_inventory']:RemoveItem(source, item, amount, nil, slot)
+	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
+		local slot_item = exports['qs-inventory']:GetInventory(source)[slot]
+		if not slot_item or slot_item.name ~= item or slot_item.amount < amount then
+			return false
+		end
+		exports['qs-inventory']:RemoveItem(source, item, amount, slot)
+		return true
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		local slot_item = exports["tgiann-inventory"]:GetItemBySlot(source, slot)
+		if not slot_item or slot_item.name ~= item or slot_item.amount < amount then
+			return false
+		end
+		return exports["tgiann-inventory"]:RemoveItem(source, item, amount, slot)
+	elseif Config.custom_scripts_compatibility.inventory == "default" or Config.custom_scripts_compatibility.inventory == "ps-inventory" then
+		-- Not every qb-style inventory version checks which item the slot holds (an empty slot can even raise an error), so the slot is checked first
+		local xPlayer = QBCore.Functions.GetPlayer(source)
+		local slot_item = xPlayer.PlayerData.items[slot]
+		if not slot_item or slot_item.name ~= item or slot_item.amount < amount then
+			return false
+		end
+		return xPlayer.Functions.RemoveItem(item, amount, slot)
+	else
+		return Utils.CustomScripts.getPlayerItem(source,item,amount,slot)
+	end
+end
+
+-- Removes an item from the player. slot (optional) removes it only from that slot, for items told apart by their metadata.
+function Utils.Framework.getPlayerItem(source,item,amount,slot)
+	if slot then
+		return removePlayerItemFromSlot(source,item,amount,slot)
+	end
 	local xPlayer = QBCore.Functions.GetPlayer(source)
 	if Config.custom_scripts_compatibility.inventory == "ox_inventory" then
 		return exports['ox_inventory']:RemoveItem(source, item, amount)

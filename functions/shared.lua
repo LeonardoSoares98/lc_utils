@@ -340,7 +340,8 @@ Citizen.CreateThread(function()
 	end
 
 	assert(Config, "^3You have errors in your config file, consider fixing it or redownload the original config.^7")
-	assert(Config.framework == "QBCore" or Config.framework == "ESX", string.format("^3The Config.framework must be set to ^1ESX^3 or ^1QBCore^3, its actually set to ^1%s^3.^7", Config.framework))
+	local available_frameworks = { "ESX", "QBCore", "Qbox", "Standalone" }
+	assert(Utils.Table.contains(available_frameworks, Config.framework), string.format("^3The Config.framework must be set to ^1%s^3, its actually set to ^1%s^3.^7", table.concat(available_frameworks, "^3, ^1"), Config.framework))
 
 	local configs_to_validate = {
 		{ config_path = {"custom_scripts_compatibility"}, default_value = {	['fuel'] = "default", ['inventory'] = "default", ['keys'] = "default", ['mdt'] = "default", ['target'] = "disabled", ['notification'] = "default"} },

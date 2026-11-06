@@ -1,6 +1,6 @@
 Config = Config or {}
 
-Config.framework = "QBCore"						-- [ESX|QBCore] Your framework
+Config.framework = "QBCore"						-- [ESX|QBCore|Qbox|Standalone] Your framework
 
 Config.ESX_settings = {							-- (ESX Only) ESX settings
 	['is_updated'] = true,						-- Set to false if your ESX uses the getSharedObject event (usually for ESX versions older than 1.9.0)
@@ -24,7 +24,7 @@ Config.custom_scripts_compatibility = {
 	['keys'] = "default",						-- [qs-vehiclekeys|cd_garage|jaksam|wasabi_carlock|MrNewbVehicleKeys|tgiann-hotwire|Renewed|okokGarage|default|other] Keys script Compatibility
 	['mdt'] = "default",						-- [ps-mdt|redutzu-mdt|lb-tablet|default|other] MDT script Compatibility (to log weapon serial)
 	['target'] = "disabled",					-- [qb-target|ox_target|disabled|other] Target script Compatibility (disabled will use markers)
-	['notification'] = "default",				-- [okokNotify|qbcore|ox_lib|default|other] Notification script Compatibility
+	['notification'] = "default",				-- [okokNotify|qbcore|qbox|ox_lib|default|other] Notification script Compatibility
 	['progress_bar'] = "default",				-- [default|other] Progress Bar script Compatibility
 }
 

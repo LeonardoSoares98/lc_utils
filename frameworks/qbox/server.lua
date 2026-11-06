@@ -1,0 +1,742 @@
+---@diagnostic disable: duplicate-set-field
+if Config.framework ~= "Qbox" then return end
+Utils.Framework = {}
+
+-- Framework init
+QBX = exports['qbx_core']
+
+-- Framework functions
+function Utils.Framework.getPlayerIdLog(source)
+	local user_id = Utils.Framework.getPlayerId(source)
+	local player_name = GetPlayerName(source)
+	return user_id.." ("..player_name..")"
+end
+
+function Utils.Framework.getPlayers()
+	local players = {}
+	for _, PlayerData in pairs(QBX:GetPlayersData()) do
+		table.insert(players, PlayerData.source)
+	end
+	return players
+end
+
+function Utils.Framework.getPlayerId(source)
+	local xPlayer = QBX:GetPlayer(source)
+	if xPlayer then
+		return xPlayer.PlayerData.citizenid
+	end
+	return nil
+end
+
+function Utils.Framework.getPlayerSource(user_id)
+	local xPlayer = QBX:GetPlayerByCitizenId(user_id)
+	if xPlayer then
+		return xPlayer.PlayerData.source
+	end
+	return nil
+end
+
+function Utils.Framework.getPlayerName(user_id)
+	if user_id then
+		local tPlayer = QBX:GetPlayerByCitizenId(user_id)
+		if tPlayer and tPlayer.PlayerData then
+			return tPlayer.PlayerData.charinfo.firstname.." "..tPlayer.PlayerData.charinfo.lastname
+		else
+			local sql = "SELECT charinfo FROM `players` WHERE citizenid = @user_id";
+			local query = MySQL.Sync.fetchAll(sql,{['@user_id'] = user_id});
+			if query and query[1] and query[1].charinfo then
+				return json.decode(query[1].charinfo).firstname.." "..json.decode(query[1].charinfo).lastname
+			end
+		end
+	end
+	return false
+end
+
+function Utils.Framework.getOnlinePlayers()
+	local xPlayers = Utils.Framework.getPlayers()
+	local players = {}
+	for i=1, #xPlayers, 1 do
+		local xPlayer = QBX:GetPlayer(xPlayers[i])
+		if xPlayer then
+			local charinfo = xPlayer.PlayerData.charinfo
+			local name = (charinfo and charinfo.firstname and charinfo.lastname)
+				and (charinfo.firstname .. " " .. charinfo.lastname)
+				or Utils.Framework.getPlayerName(xPlayer.PlayerData.citizenid)
+			table.insert(players, {
+				source		= xPlayers[i],
+				identifier 	= xPlayer.PlayerData.citizenid,
+				name		= name
+			})
+		end
+	end
+	return players
+end
+
+function Utils.Framework.giveAccountMoney(source,amount,account)
+	QBX:AddMoney(source, account, amount)
+end
+
+function Utils.Framework.tryRemoveAccountMoney(source,amount,account)
+	local money = QBX:GetMoney(source, account)
+	if money >= amount then
+		QBX:RemoveMoney(source, account, amount)
+		return true
+	else
+		return false
+	end
+end
+
+function Utils.Framework.getPlayerAccountMoney(source,account)
+	local money = QBX:GetMoney(source, account)
+	return money
+end
+
+function Utils.Framework.hasJobs(source,jobs)
+	local xPlayer = QBX:GetPlayer(source)
+	local PlayerJob = xPlayer.PlayerData.job
+	if Config.debug_job then
+		print("Job name: "..PlayerJob.name)
+		print("On duty:",PlayerJob.onduty)
+	end
+	for _,v in pairs(jobs) do
+		if PlayerJob.name == v and PlayerJob.onduty then
+			return true
+		end
+	end
+	return false
+end
+
+function Utils.Framework.getPlayerJob(source)
+	local xPlayer = QBX:GetPlayer(source)
+	local PlayerJob = xPlayer.PlayerData.job
+	if Config.debug_job then
+		print("Job name: "..PlayerJob.name)
+		print("On duty:",PlayerJob.onduty)
+	end
+	return PlayerJob.name, PlayerJob.onduty
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Items
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+-- The metadata of an inventory item. ox_inventory names it metadata; the qb-style inventories name it info and store "none" as an empty string.
+local function getItemMetadata(item)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" or Config.custom_scripts_compatibility.inventory == "default" then
+		return item.metadata
+	end
+	if item.info == "" then return {} end
+	return item.info
+end
+
+-- One entry per stack: slot and metadata identify a single item (e.g. one with a serial number)
+function Utils.Framework.getPlayerInventory(source)
+	local xPlayer = QBX:GetPlayer(source)
+	local player_inventory = {}
+	for k,v in pairs(xPlayer.PlayerData.items) do
+		v.amount = v.amount or v.count
+		table.insert(player_inventory, { amount = v.amount, name = string.lower(v.name), label = v.label, slot = v.slot, metadata = getItemMetadata(v) })
+	end
+	return player_inventory
+end
+
+function Utils.Framework.givePlayerItem(source,item,amount,metadata)
+	local xPlayer = QBX:GetPlayer(source)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" or Config.custom_scripts_compatibility.inventory == "default" then
+		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
+			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
+		end
+	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
+		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
+	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
+		error("ps-inventory not available for Qbox")
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:AddItem(source, item, amount, nil, metadata)
+	else
+		return Utils.CustomScripts.givePlayerItem(source,item,amount,metadata)
+	end
+	return false
+end
+
+function Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
+	local xPlayer = QBX:GetPlayer(source)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" or Config.custom_scripts_compatibility.inventory == "default" then
+		if exports['ox_inventory']:CanCarryItem(source, item, amount) then
+			return exports['ox_inventory']:AddItem(source, item, amount, metadata)
+		end
+	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
+		return exports['qs-inventory']:AddItem(source, item, amount, nil, metadata)
+	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
+		error("ps-inventory not available for Qbox")
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:AddItem(source, item, amount, nil, metadata)
+	else
+		return Utils.CustomScripts.givePlayerWeapon(source,item,amount,metadata)
+	end
+	return false
+end
+
+local function randomInt(length)
+	local str = ''
+	for _ = 1, length do
+		str = str .. math.random(0, 9)
+	end
+	return str
+end
+
+local function randomStr(length)
+	local str = ''
+	for _ = 1, length do
+		str = str .. string.char(math.random(65, 90))
+	end
+	return str
+end
+
+function Utils.Framework.givePlayerWeapon(source,item,amount,metadata)
+	if Config.custom_scripts_compatibility.mdt == "ps-mdt" then
+		local xPlayer = QBX:GetPlayer(source)
+		local serial = randomInt(2) .. randomStr(3) .. randomInt(1) .. randomStr(2) .. randomInt(3) .. randomStr(4)
+		local imageurl = ("https://cfx-nui-ox_inventory/web/images/%s.png"):format(item)
+		local notes = "Purchased at Gun Club"
+		local owner = xPlayer.PlayerData.charinfo.firstname .. " " .. xPlayer.PlayerData.charinfo.lastname
+		local weapClass = 1
+		local weapModel = exports['ox_inventory']:Items(item).label
+		metadata = metadata or {}
+		metadata.serial = serial
+		if Utils.Framework.insertWeaponInInventory(source,item,amount,metadata) then
+			exports['ps-mdt']:CreateWeaponInfo(serial, imageurl, notes, owner, weapClass, weapModel)
+			QBX:Notify(source, 'Weapon Registered', 'success')
+			return true
+		end
+		return false
+	elseif Config.custom_scripts_compatibility.mdt == "redutzu-mdt" then
+		local xPlayer = QBX:GetPlayer(source)
+		local weapModel = exports['ox_inventory']:Items(item).label
+		metadata = metadata or {}
+		metadata.serial = exports['redutzu-mdt']:GenerateWeaponSerial()
+		if Utils.Framework.insertWeaponInInventory(source,item,amount,metadata) then
+			exports['redutzu-mdt']:RegisterWeapon({
+				label = weapModel,
+				name = item,
+				serial = metadata.serial,
+				identifier = xPlayer.PlayerData.citizenid,
+				notes = 'attachments, color, etc.'
+			})
+			QBX:Notify(source, 'Weapon Registered', 'success')
+			return true
+		end
+		return false
+	elseif Config.custom_scripts_compatibility.mdt == "lb-tablet" then
+		local xPlayer = QBX:GetPlayer(source)
+		metadata = metadata or {}
+
+		-- Generate serial
+		metadata.serial = metadata.serial or ('%s%s%s'):format(
+			math.random(100000, 999999),
+			randomStr(3),
+			math.random(100000, 999999)
+		)
+
+		-- First: give the weapon to the player
+		if Utils.Framework.insertWeaponInInventory(source, item, amount, metadata) then
+			-- Then: register it in lb-tablet
+			exports["lb-tablet"]:RegisterWeapon(metadata.serial, {
+				owner = xPlayer.PlayerData.citizenid,
+				weaponName = item
+			})
+			QBX:Notify(source, 'Weapon Registered', 'success')
+			return true
+		end
+
+		return false
+	elseif Config.custom_scripts_compatibility.mdt == "default" then
+		return Utils.Framework.insertWeaponInInventory(source,item,amount,metadata)
+	else
+		return Utils.CustomScripts.createWeaponInMdt(source,item,amount,metadata)
+	end
+end
+
+function Utils.Framework.playerHasItem(source,item,amount)
+	local xPlayer = QBX:GetPlayer(source)
+	if xPlayer.Functions.GetItemByName(item) and xPlayer.Functions.GetItemByName(item).amount >= amount then
+		return true
+	else
+		return false
+	end
+end
+
+-- Removes the item from that slot only. Returns false when the slot doesn't hold at least this amount of the item.
+local function removePlayerItemFromSlot(source,item,amount,slot)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" or Config.custom_scripts_compatibility.inventory == "default" then
+		-- ox_inventory takes the item from other slots when the given one doesn't hold it, so the slot is checked first
+		local slot_item = exports['ox_inventory']:GetSlot(source, slot)
+		if not slot_item or slot_item.name ~= item or slot_item.count < amount then
+			return false
+		end
+		return exports['ox_inventory']:RemoveItem(source, item, amount, nil, slot)
+	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
+		local slot_item = exports['qs-inventory']:GetInventory(source)[slot]
+		if not slot_item or slot_item.name ~= item or slot_item.amount < amount then
+			return false
+		end
+		exports['qs-inventory']:RemoveItem(source, item, amount, slot)
+		return true
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		local slot_item = exports["tgiann-inventory"]:GetItemBySlot(source, slot)
+		if not slot_item or slot_item.name ~= item or slot_item.amount < amount then
+			return false
+		end
+		return exports["tgiann-inventory"]:RemoveItem(source, item, amount, slot)
+	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
+		error("ps-inventory not available for Qbox")
+	else
+		return Utils.CustomScripts.getPlayerItem(source,item,amount,slot)
+	end
+end
+
+-- Removes an item from the player. slot (optional) removes it only from that slot, for items told apart by their metadata.
+function Utils.Framework.getPlayerItem(source,item,amount,slot)
+	if slot then
+		return removePlayerItemFromSlot(source,item,amount,slot)
+	end
+	local xPlayer = QBX:GetPlayer(source)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" or Config.custom_scripts_compatibility.inventory == "default" then
+		return exports['ox_inventory']:RemoveItem(source, item, amount)
+	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
+		if xPlayer.Functions.GetItemByName(item) and xPlayer.Functions.GetItemByName(item).amount >= amount then
+			exports['qs-inventory']:RemoveItem(source, item, amount)
+			return true
+		else
+			return false
+		end
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:RemoveItem(source, item, amount)
+	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
+		error("ps-inventory not available for Qbox")
+	else
+		return Utils.CustomScripts.getPlayerItem(source,item,amount)
+	end
+end
+
+function Utils.Framework.getPlayerWeapon(source,item,amount)
+	local xPlayer = QBX:GetPlayer(source)
+	if Config.custom_scripts_compatibility.inventory == "ox_inventory" or Config.custom_scripts_compatibility.inventory == "default" then
+		return exports['ox_inventory']:RemoveItem(source, item, amount)
+	elseif Config.custom_scripts_compatibility.inventory == "qs-inventory" then
+		if xPlayer.Functions.GetItemByName(item) and xPlayer.Functions.GetItemByName(item).amount >= amount then
+			exports['qs-inventory']:RemoveItem(source, item, amount)
+			return true
+		else
+			return false
+		end
+	elseif Config.custom_scripts_compatibility.inventory == "tgiann-inventory" then
+		return exports["tgiann-inventory"]:RemoveItem(source, item, amount)
+	elseif Config.custom_scripts_compatibility.inventory == "ps-inventory" then
+		error("ps-inventory not available for Qbox")
+	else
+		return Utils.CustomScripts.getPlayerWeapon(source,item,amount)
+	end
+end
+
+function Utils.Framework.hasWeaponLicense(source)
+	local xPlayer = QBX:GetPlayer(source)
+	if xPlayer.PlayerData.metadata["licences"] and xPlayer.PlayerData.metadata["licences"]["weapon"] then
+		return true
+	else
+		return false
+	end
+end
+
+function Utils.Framework.registerUsableItem(item_id, event_name, is_server_event, ...)
+	local args = {...}
+	QBX:CreateUseableItem(item_id, function(source, item)
+		local Player = QBX:GetPlayer(source)
+		if not Player.Functions.GetItemByName(item.name) then return end
+		if is_server_event then
+			TriggerEvent(event_name, source, item_id, Player.PlayerData.citizenid, table.unpack(args))
+		else
+			TriggerClientEvent(event_name, source, item_id, Player.PlayerData.citizenid, table.unpack(args))
+		end
+	end)
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Vehicles
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.givePlayerVehicle(source, vehicle, vehicle_type, plate_format, vehicle_props, state, finance_details)
+	local xPlayer = QBX:GetPlayer(source)
+	local plate = vehicle_props and vehicle_props.plate or Utils.Framework.generatePlate(plate_format)
+	local mods = vehicle_props and vehicle_props or { plate = plate }
+	local state = state or 1
+	local finance_details = finance_details or {}
+	local vehicle_type = vehicle_type or 'car'
+	local garage = Config.owned_vehicles['default'].garage
+	if Config.owned_vehicles[vehicle_type] then
+		garage = Config.owned_vehicles[vehicle_type].garage
+	end
+	Utils.Database.execute('INSERT INTO player_vehicles (license, citizenid, plate, vehicle, hash, mods, garage, state, balance, paymentamount, paymentsleft, financetime) VALUES (@license, @citizenid, @plate, @vehicle, @hash, @mods, @garage, @state, @balance, @paymentamount, @paymentsleft, @financetime)',
+	{
+		['@license'] = xPlayer.PlayerData.license,
+		['@citizenid'] = xPlayer.PlayerData.citizenid,
+		['@plate'] = plate,
+		['@state'] = state, -- 1 = inside garage | 0 = outside garage
+		['@vehicle'] = vehicle,
+		['@hash'] = GetHashKey(vehicle),
+		['@garage'] = garage,
+		['@mods'] = json.encode(mods),
+		['@balance'] = finance_details.balance or 0,
+		['@paymentamount'] = finance_details.paymentamount or 0,
+		['@paymentsleft'] = finance_details.paymentsleft or 0,
+		['@financetime'] = finance_details.financetime or 0
+	})
+	return true
+end
+
+function Utils.Framework.getVehiclesData(plate, user_id, query_data)
+	query_data = query_data or {}
+	local sql = "SELECT citizenid as user_id, vehicle, plate, balance, paymentamount, paymentsleft, financetime FROM `player_vehicles` WHERE 1=1";
+	local params = {}
+
+	if plate then
+		sql = sql .. " AND plate = @plate"
+		params['@plate'] = plate
+	end
+
+	if user_id then
+		sql = sql .. " AND citizenid = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	if query_data.only_financed_vehicles then
+		sql = sql .. " AND balance > 0"
+	end
+
+	return Utils.Database.fetchAll(sql, params)
+end
+
+function Utils.Framework.updateVehicleData(plate, user_id, vehicle_data)
+	if not vehicle_data or vehicle_data == {} then return end
+	assert(plate, "plate cannot be null")
+	assert(next(vehicle_data) ~= nil, "vehicle_data table must have at least one element")
+
+	local sql = "UPDATE `player_vehicles` SET ";
+
+	local params = {
+		['@plate'] = plate
+	}
+
+	if vehicle_data.balance then
+		sql = sql .. "balance = @balance, "
+		params['@balance'] = vehicle_data.balance
+	end
+
+	if vehicle_data.paymentamount then
+		sql = sql .. "paymentamount = @paymentamount, "
+		params['@paymentamount'] = vehicle_data.paymentamount
+	end
+
+	if vehicle_data.paymentsleft then
+		sql = sql .. "paymentsleft = @paymentsleft, "
+		params['@paymentsleft'] = vehicle_data.paymentsleft
+	end
+
+	if vehicle_data.financetime then
+		sql = sql .. "financetime = @financetime, "
+		params['@financetime'] = vehicle_data.financetime
+	end
+
+	sql = sql:sub(1, -3)
+
+	sql = sql .. " WHERE plate = @plate"
+
+	if user_id then
+		sql = sql .. " AND citizenid = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	Utils.Database.execute(sql, params);
+end
+
+function Utils.Framework.deleteOwnedVehicle(plate, user_id)
+	assert(plate, "plate cannot be null")
+	local sql = "DELETE FROM `player_vehicles` WHERE plate = @plate"
+
+	local params = {
+		['@plate'] = plate
+	}
+
+	if user_id then
+		sql = sql .. " AND citizenid = @user_id"
+		params['@user_id'] = user_id
+	end
+
+	Utils.Database.execute(sql, params)
+end
+
+function Utils.Framework.deductFinanceTimeFromPlayerVehicles(user_id, financetime)
+	local sql = "UPDATE player_vehicles SET financetime = financetime - @financetime WHERE citizenid = @user_id AND balance > 0";
+	Utils.Database.execute(sql, {['@user_id'] = user_id, ['@financetime'] = financetime});
+end
+
+function Utils.Framework.getVehicleDataByPlates(plates)
+	local plate_str = table.concat(plates, "','")
+	local sql = ("SELECT citizenid as user_id, vehicle, plate, balance, paymentamount, paymentsleft, financetime FROM `player_vehicles` WHERE plate IN('%s')"):format(plate_str);
+	local query = Utils.Database.fetchAll(sql, {});
+	return query
+end
+
+function Utils.Framework.getVehicleOwner(plate)
+	local query = Utils.Database.fetchAll("SELECT citizenid as user_id FROM player_vehicles WHERE `plate` = @plate", {['@plate'] = plate})
+	if query[1] then
+		return query[1].user_id
+	else
+		return false
+	end
+end
+Utils.Framework.isOwnedVehicle = Utils.Framework.getVehicleOwner -- Adv. vehicles
+
+function Utils.Framework.dontAskMeWhatIsThis(user_id)
+	local sql = [[
+		SELECT O.vehicle, O.plate, R.price, R.id, R.status
+		FROM `player_vehicles` O
+		LEFT JOIN `dealership_requests` R ON R.plate = O.plate
+		WHERE O.citizenid = @user_id OR R.user_id = @user_id AND R.request_type = 0
+			UNION
+		SELECT R.vehicle, R.plate, R.price, R.id, R.status
+		FROM `player_vehicles` O
+		RIGHT JOIN `dealership_requests` R ON R.plate = O.plate
+		WHERE O.citizenid = @user_id OR R.user_id = @user_id AND R.request_type = 0
+	]];
+	return Utils.Database.fetchAll(sql,{['@user_id'] = user_id});
+end
+
+function Utils.Framework.generatePlate(plate_format)
+	local plateFormat = plate_format or Config.owned_vehicles.plate_format
+	local generatedPlate = ''
+	math.randomseed(os.time())
+	for i = 1, math.min(#plateFormat, 8) do
+		local currentChar = string.sub(plateFormat, i, i)
+		if currentChar == 'n' then
+			local a = math.random(0, 9)
+			generatedPlate = generatedPlate .. a
+		elseif currentChar == 'l' then
+			local a = string.char(math.random(65, 90))
+			generatedPlate = generatedPlate .. a
+		elseif currentChar == 'x' then
+			local isLetter = math.random(0, 1)
+			if isLetter == 1 then
+				local a = string.char(math.random(65, 90))
+				generatedPlate = generatedPlate .. a
+			else
+				local a = math.random(0, 9)
+				generatedPlate = generatedPlate .. a
+			end
+		else
+			generatedPlate = generatedPlate .. string.upper(currentChar)
+		end
+	end
+	local isDuplicate = MySQL.Sync.fetchScalar('SELECT COUNT(1) FROM player_vehicles WHERE plate = @plate', {
+		['@plate'] = generatedPlate
+	})
+	if isDuplicate == 1 then
+		generatedPlate = Utils.Framework.generatePlate(plateFormat)
+	end
+	-- Trim any leading/trailing spaces before returning
+	generatedPlate = generatedPlate:match('^%s*(.-)%s*$')
+	return generatedPlate
+end
+
+Citizen.CreateThread(function()
+	Wait(2000)
+	Utils.Database.validateOwnedVehicleTableColumns("player_vehicles")
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Trucker
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.getTopTruckers()
+    local sql = [[SELECT U.charinfo, T.user_id, T.exp, T.traveled_distance 
+        FROM trucker_users T 
+        INNER JOIN players U ON T.user_id = U.citizenid
+        WHERE traveled_distance > 0 ORDER BY traveled_distance DESC LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Weekly leaderboard (current ISO week)
+function Utils.Framework.getTopTruckersWeek()
+    local sql = [[SELECT U.charinfo, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN players U ON D.user_id = U.citizenid
+        WHERE YEARWEEK(FROM_UNIXTIME(D.delivered_at), 1) = YEARWEEK(CURDATE(), 1)
+        GROUP BY D.user_id, U.charinfo
+        ORDER BY traveled_distance DESC
+        LIMIT 10;]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Monthly leaderboard (current month)
+function Utils.Framework.getTopTruckersMonth()
+    local sql = [[SELECT U.charinfo, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN players U ON D.user_id = U.citizenid
+        WHERE YEAR(FROM_UNIXTIME(D.delivered_at)) = YEAR(CURDATE())
+          AND MONTH(FROM_UNIXTIME(D.delivered_at)) = MONTH(CURDATE())
+        GROUP BY D.user_id, U.charinfo
+        ORDER BY traveled_distance DESC
+        LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Seasonal leaderboard (deliveries within [season_start_ts, season_end_ts))
+function Utils.Framework.getTopTruckersSeason(season_start_ts, season_end_ts)
+    local sql = [[SELECT U.charinfo, D.user_id, SUM(D.exp) AS exp, SUM(D.distance) AS traveled_distance
+        FROM trucker_deliveries D
+        INNER JOIN players U ON D.user_id = U.citizenid
+        WHERE D.delivered_at >= @start_ts AND D.delivered_at < @end_ts
+        GROUP BY D.user_id, U.charinfo
+        ORDER BY traveled_distance DESC
+        LIMIT 10]]
+    local params = {['@start_ts'] = tonumber(season_start_ts) or 0, ['@end_ts'] = tonumber(season_end_ts) or 0}
+    local result = Utils.Database.fetchAll(sql, params);
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+function Utils.Framework.getpartyMembers(party_id)
+	local sql = [[SELECT U.charinfo, P.* 
+		FROM `trucker_party_members` P
+		INNER JOIN players U ON P.user_id = U.citizenid
+		WHERE party_id = @party_id]];
+	local result = Utils.Database.fetchAll(sql,{['@party_id'] = party_id});
+	for k,v in ipairs(result) do
+		result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+	end
+	return result
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Farming
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.getTopFarmers()
+    local sql = [[SELECT U.charinfo, FS.user_id, FU.exp, FS.total_crops_harvested 
+        FROM farming_simulator_stats FS 
+		INNER JOIN farming_simulator_users FU ON FS.user_id = FU.user_id
+        INNER JOIN players U ON FS.user_id = U.citizenid
+        WHERE FS.total_crops_harvested > 0 ORDER BY FS.total_crops_harvested DESC LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Weekly leaderboard (current ISO week)
+function Utils.Framework.getTopFarmersWeek()
+    local sql = [[SELECT U.charinfo, FH.user_id, SUM(FH.exp) AS exp, SUM(FH.amount) AS total_crops_harvested
+        FROM farming_simulator_daily_harvests FH
+        INNER JOIN players U ON FH.user_id = U.citizenid
+        WHERE YEARWEEK(FROM_UNIXTIME(FH.unix_days), 1) = YEARWEEK(CURDATE(), 1)
+        GROUP BY FH.user_id, U.charinfo
+        ORDER BY total_crops_harvested DESC
+        LIMIT 10;]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Monthly leaderboard (current month)
+function Utils.Framework.getTopFarmersMonth()
+    local sql = [[SELECT U.charinfo, FH.user_id, SUM(FH.exp) AS exp, SUM(FH.amount) AS total_crops_harvested
+        FROM farming_simulator_daily_harvests FH
+        INNER JOIN players U ON FH.user_id = U.citizenid
+        WHERE YEAR(FROM_UNIXTIME(FH.unix_days)) = YEAR(CURDATE())
+          AND MONTH(FROM_UNIXTIME(FH.unix_days)) = MONTH(CURDATE())
+        GROUP BY FH.user_id, U.charinfo
+        ORDER BY total_crops_harvested DESC
+        LIMIT 10]];
+    local result = Utils.Database.fetchAll(sql,{});
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-- Seasonal leaderboard (deliveries within [season_start_ts, season_end_ts))
+function Utils.Framework.getTopFarmersSeason(season_start_ts, season_end_ts)
+    local sql = [[SELECT U.charinfo, FH.user_id, SUM(FH.exp) AS exp, SUM(FH.amount) AS total_crops_harvested
+        FROM farming_simulator_daily_harvests FH
+        INNER JOIN players U ON FH.user_id = U.citizenid
+        WHERE FH.unix_days >= @start_ts AND FH.unix_days < @end_ts
+        GROUP BY FH.user_id, U.charinfo
+        ORDER BY total_crops_harvested DESC
+        LIMIT 10]]
+    local params = {['@start_ts'] = tonumber(season_start_ts) or 0, ['@end_ts'] = tonumber(season_end_ts) or 0}
+    local result = Utils.Database.fetchAll(sql, params);
+    for k,v in ipairs(result) do
+        result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+    end
+    return result
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Fisher
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.getTopFishers()
+	local sql = [[SELECT U.charinfo, F.user_id, F.exp, SUM(C.amount) as fishes_caught
+		FROM fishing_simulator_users F
+		INNER JOIN players U ON F.user_id = U.citizenid
+		LEFT JOIN fishing_simulator_fishes_caught C ON F.user_id = C.user_id
+		WHERE F.exp > 0
+		GROUP BY U.charinfo, F.user_id, F.exp
+		ORDER BY F.exp DESC
+		LIMIT 10]];
+	local result = Utils.Database.fetchAll(sql,{});
+	for k,v in ipairs(result) do
+		result[k].name = json.decode(v.charinfo).firstname.." "..json.decode(v.charinfo).lastname
+	end
+	return result
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- Collations
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+function Utils.Framework.validateTableCollations(script_table, script_column, alter_queries)
+	local collation_sql = [[SELECT COLLATION_NAME, CHARACTER_SET_NAME 
+		FROM information_schema.columns
+		WHERE table_schema = (SELECT DATABASE() AS default_schema)
+		AND table_name = 'players'
+		AND column_name = 'citizenid']]
+	local query_collation = Utils.Database.fetchAll(collation_sql,{})[1];
+	local collation_sql_script = [[SELECT COLLATION_NAME, CHARACTER_SET_NAME
+		FROM information_schema.columns
+		WHERE table_schema = (SELECT DATABASE() AS default_schema)
+		AND table_name = ']]..script_table..[['
+		AND column_name = ']]..script_column..[[']]
+	local query_collation_script = Utils.Database.fetchAll(collation_sql_script,{})[1];
+	if query_collation and query_collation['COLLATION_NAME'] and query_collation['CHARACTER_SET_NAME'] and query_collation_script and query_collation_script['COLLATION_NAME'] and query_collation['COLLATION_NAME'] ~= query_collation_script['COLLATION_NAME'] then
+		for _, alter_query in ipairs(alter_queries) do
+			Utils.Database.execute(alter_query:format(query_collation['CHARACTER_SET_NAME'],query_collation['COLLATION_NAME']), {})
+		end
+	end
+end

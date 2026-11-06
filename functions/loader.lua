@@ -54,6 +54,8 @@ if context == 'client' then
 	loadFile('functions/client/zones.lua')
 	loadFile('frameworks/esx/client.lua')
 	loadFile('frameworks/qbcore/client.lua')
+	loadFile('frameworks/qbox/client.lua')
+	loadFile('frameworks/standalone/client.lua')
 	loadFile('custom_scripts/client/fuel.lua')
 	loadFile('custom_scripts/client/keys.lua')
 	loadFile('custom_scripts/client/notification.lua')
@@ -66,6 +68,8 @@ elseif context == 'server' then
 	loadFile('functions/server/webhook.lua')
 	loadFile('frameworks/esx/server.lua')
 	loadFile('frameworks/qbcore/server.lua')
+	loadFile('frameworks/qbox/server.lua')
+	loadFile('frameworks/standalone/server.lua')
 	loadFile('custom_scripts/server/inventory.lua')
 	loadFile('custom_scripts/server/mdt.lua')
 end

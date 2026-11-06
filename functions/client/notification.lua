@@ -5,6 +5,8 @@ function notify(type,message,duration)
 	elseif Config.custom_scripts_compatibility.notification == "qbcore" then
 		QBCore = exports['qb-core']:GetCoreObject()
 		QBCore.Functions.Notify(message, type, (duration or Config.notification.duration))
+	elseif Config.custom_scripts_compatibility.notification == "qbox" then
+		exports.qbx_core:Notify(message, type, (duration or Config.notification.duration))
 	elseif Config.custom_scripts_compatibility.notification == "ox_lib" then
 		exports.ox_lib:notify({
 			title = Utils.String.capitalizeFirst(type),

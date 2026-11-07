@@ -514,40 +514,20 @@ function Utils.Framework.dontAskMeWhatIsThis(user_id)
 	return Utils.Database.fetchAll(sql,{['@user_id'] = user_id});
 end
 
+-- Generates a plate that isn't owned yet. Gives up after maxAttempts, so a format without random characters can't loop forever
 function Utils.Framework.generatePlate(plate_format)
 	local plateFormat = plate_format or Config.owned_vehicles.plate_format
-	local generatedPlate = ''
-	math.randomseed(os.time())
-	for i = 1, math.min(#plateFormat, 8) do
-		local currentChar = string.sub(plateFormat, i, i)
-		if currentChar == 'n' then
-			local a = math.random(0, 9)
-			generatedPlate = generatedPlate .. a
-		elseif currentChar == 'l' then
-			local a = string.char(math.random(65, 90))
-			generatedPlate = generatedPlate .. a
-		elseif currentChar == 'x' then
-			local isLetter = math.random(0, 1)
-			if isLetter == 1 then
-				local a = string.char(math.random(65, 90))
-				generatedPlate = generatedPlate .. a
-			else
-				local a = math.random(0, 9)
-				generatedPlate = generatedPlate .. a
-			end
-		else
-			generatedPlate = generatedPlate .. string.upper(currentChar)
+	local maxAttempts = 50
+	for _ = 1, maxAttempts do
+		local generatedPlate = Utils.Vehicles.buildPlateFromFormat(plateFormat)
+		local duplicates = MySQL.Sync.fetchScalar('SELECT COUNT(1) FROM player_vehicles WHERE plate = @plate', {
+			['@plate'] = generatedPlate
+		})
+		if (tonumber(duplicates) or 0) == 0 then
+			return generatedPlate
 		end
 	end
-	local isDuplicate = MySQL.Sync.fetchScalar('SELECT COUNT(1) FROM player_vehicles WHERE plate = @plate', {
-		['@plate'] = generatedPlate
-	})
-	if isDuplicate == 1 then
-		generatedPlate = Utils.Framework.generatePlate(plateFormat)
-	end
-	-- Trim any leading/trailing spaces before returning
-	generatedPlate = generatedPlate:match('^%s*(.-)%s*$')
-	return generatedPlate
+	error(("^3Could not generate a unique plate for the format '^1%s^3' after %d attempts. Check Config.owned_vehicles.plate_format.^7"):format(plateFormat, maxAttempts))
 end
 
 Citizen.CreateThread(function()

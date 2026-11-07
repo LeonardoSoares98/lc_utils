@@ -1,4 +1,4 @@
-Utils.Vehicles = {}
+Utils.Vehicles = Utils.Vehicles or {}
 local generatedPlates = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -624,73 +624,38 @@ end
 -- isSpawnPointClear
 -----------------------------------------------------------------------------------------------------------------------------------------
 
-function EnumerateEntitiesWithinDistance(entities, isPlayerEntities, coords, maxDistance)
-	local nearbyEntities = {}
+-- Every vehicle the client knows about
+GetVehicles = function()
+	return GetGamePool('CVehicle')
+end
 
+-- Vehicles within maxDistance of coords (vector3 or table with x, y, z), or of the player when coords is nil
+GetVehiclesInArea = function(coords, maxDistance)
 	if coords then
 		coords = vector3(coords.x, coords.y, coords.z)
 	else
-		local playerPed = PlayerPedId()
-		coords = GetEntityCoords(playerPed)
+		coords = GetEntityCoords(PlayerPedId())
 	end
 
-	for k,entity in pairs(entities) do
-		local distance = #(coords - GetEntityCoords(entity))
-
-		if distance <= maxDistance then
-			table.insert(nearbyEntities, isPlayerEntities and k or entity)
+	local nearbyVehicles = {}
+	local vehicles = GetVehicles()
+	for i = 1, #vehicles do
+		local vehicle = vehicles[i]
+		if #(coords - GetEntityCoords(vehicle)) <= maxDistance then
+			nearbyVehicles[#nearbyVehicles + 1] = vehicle
 		end
 	end
-
-	return nearbyEntities
+	return nearbyVehicles
 end
 
-local entityEnumerator = {
-	__gc = function(enum)
-		if enum.destructor and enum.handle then
-			enum.destructor(enum.handle)
+-- True when no vehicle is within maxDistance of coords
+Utils.Vehicles.isSpawnPointClear = function(coords, maxDistance)
+	coords = vector3(coords.x, coords.y, coords.z)
+	local vehicles = GetVehicles()
+	for i = 1, #vehicles do
+		if #(coords - GetEntityCoords(vehicles[i])) <= maxDistance then
+			return false
 		end
-
-		enum.destructor = nil
-		enum.handle = nil
 	end
-}
-
-function EnumerateEntities(initFunc, moveFunc, disposeFunc)
-	return coroutine.wrap(function()
-		local iter, id = initFunc()
-		if not id or id == 0 then
-			disposeFunc(iter)
-			return
-		end
-
-		local enum = {handle = iter, destructor = disposeFunc}
-		setmetatable(enum, entityEnumerator)
-		local next = true
-
-		repeat
-			coroutine.yield(id)
-			next, id = moveFunc(iter)
-		until not next
-
-		enum.destructor, enum.handle = nil, nil
-		disposeFunc(iter)
-	end)
+	return true
 end
-
-function EnumerateVehicles()
-	return EnumerateEntities(FindFirstVehicle, FindNextVehicle, EndFindVehicle)
-end
-
-GetVehicles = function()
-	local vehicles = {}
-
-	for vehicle in EnumerateVehicles() do
-		table.insert(vehicles, vehicle)
-	end
-
-	return vehicles
-end
-
-GetVehiclesInArea = function(coords, maxDistance) return EnumerateEntitiesWithinDistance(GetVehicles(), false, coords, maxDistance) end
-Utils.Vehicles.isSpawnPointClear = function(coords, maxDistance) return #GetVehiclesInArea(coords, maxDistance) == 0 end

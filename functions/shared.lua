@@ -3,6 +3,7 @@ Utils.Debug = {}
 Utils.Table = {}
 Utils.Math = {}
 Utils.String = {}
+Utils.Vehicles = {}
 Utils.CustomScripts = {}
 Utils.Config = Config
 Utils.Lang = {}
@@ -285,16 +286,46 @@ function Utils.Math.checkIfCurrentVersionisOutdated(latestVersion, curVersion)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- Vehicles
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+-- Builds a plate from the format [n = number | l = letter | x = any], other characters are kept (max 8 characters)
+function Utils.Vehicles.buildPlateFromFormat(plateFormat)
+	local chars = {}
+	for i = 1, math.min(#plateFormat, 8) do
+		local currentChar = string.sub(plateFormat, i, i)
+		if currentChar == 'n' then
+			chars[i] = tostring(math.random(0, 9))
+		elseif currentChar == 'l' then
+			chars[i] = string.char(math.random(65, 90))
+		elseif currentChar == 'x' then
+			if math.random(0, 1) == 1 then
+				chars[i] = string.char(math.random(65, 90))
+			else
+				chars[i] = tostring(math.random(0, 9))
+			end
+		else
+			chars[i] = string.upper(currentChar)
+		end
+	end
+	return Utils.Math.trim(table.concat(chars))
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- Language
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 local cached_langs = {}
+local translated = {}		-- Resolved strings by locale and key, so draw loops don't resolve the same key every frame
+local reported_missing = {}	-- Missing keys already printed, so the warning isn't printed every frame
 function Utils.loadLanguageFile(lang_file)
 	local resource = getResourceName()
 	assert(resource,"^3Unknown resource loading the language files.^7")
 
 	Utils.Table.deepMerge(lang_file, Utils.Lang)
 	cached_langs[resource] = lang_file
+	translated = {}
+	reported_missing = {}
 end
 
 function Utils.translate(key)
@@ -303,27 +334,47 @@ function Utils.translate(key)
 		return ('missing_resource')
 	end
 
-	if not cached_langs[resource] then
+	local lang = cached_langs[resource]
+	if not lang then
 		return ('missing_lang:%s'):format(resource)
 	end
 
 	local locale = Config.locale
-	local langObj = cached_langs[resource][locale]
-	if not langObj then
+	if not lang[locale] then
 		print(string.format("Language '%s' is not available. Using default 'en'.", locale))
 		Config.locale = 'en'
-		langObj = cached_langs[resource][Config.locale]
+		locale = 'en'
+	end
+
+	local cache = translated[locale]
+	if not cache then
+		cache = {}
+		translated[locale] = cache
+	end
+	local cached = cache[key]
+	if cached ~= nil then
+		return cached
+	end
+
+	local langObj = lang[locale]
+	if not langObj then
+		return ('missing_lang:%s'):format(resource)
 	end
 
 	local keys = Utils.String.split(key,".")
 	for _, k in ipairs(keys) do
 		if not langObj[k] then
-			print(string.format("Translation key '%s' not found for language '%s'.", key, locale))
+			local missing_id = locale .. ":" .. key
+			if not reported_missing[missing_id] then
+				reported_missing[missing_id] = true
+				print(string.format("Translation key '%s' not found for language '%s'.", key, locale))
+			end
 			return ('missing_translation:%s:%s'):format(locale, key)
 		end
 		langObj = langObj[k]
 	end
 
+	cache[key] = langObj
 	return langObj
 end
 

@@ -196,32 +196,7 @@ end
 -- No owned vehicles table to check duplicates against
 function Utils.Framework.generatePlate(plate_format)
 	local plateFormat = plate_format or Config.owned_vehicles.plate_format
-	local generatedPlate = ''
-	math.randomseed(os.time())
-	for i = 1, math.min(#plateFormat, 8) do
-		local currentChar = string.sub(plateFormat, i, i)
-		if currentChar == 'n' then
-			local a = math.random(0, 9)
-			generatedPlate = generatedPlate .. a
-		elseif currentChar == 'l' then
-			local a = string.char(math.random(65, 90))
-			generatedPlate = generatedPlate .. a
-		elseif currentChar == 'x' then
-			local isLetter = math.random(0, 1)
-			if isLetter == 1 then
-				local a = string.char(math.random(65, 90))
-				generatedPlate = generatedPlate .. a
-			else
-				local a = math.random(0, 9)
-				generatedPlate = generatedPlate .. a
-			end
-		else
-			generatedPlate = generatedPlate .. string.upper(currentChar)
-		end
-	end
-	-- Trim any leading/trailing spaces before returning
-	generatedPlate = generatedPlate:match('^%s*(.-)%s*$')
-	return generatedPlate
+	return Utils.Vehicles.buildPlateFromFormat(plateFormat)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------

@@ -10,6 +10,7 @@
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
         
         <!-- Stylesheets -->
+        <link rel="stylesheet" href="css/theme.css">
         <link id="utils-css-light" rel="stylesheet" href="css/light-style.css" disabled>
         <link id="utils-css-dark" rel="stylesheet" href="css/dark-style.css">
         <link rel="stylesheet" href="css/style.css">
@@ -19,12 +20,26 @@
     </head>
     <body>
         <div id="progress-bar-wrapper">
-            <div class="loading-bar">
-                <div class="progress-bar"></div>
-            </div>
-            <div class="status">
-                <div class="state"></div>
-                <div class="percentage"></div>
+            <div class="pb-card">
+                <div class="pb-header status">
+                    <div class="pb-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="pb-ring-bg" cx="12" cy="12" r="9"></circle>
+                            <circle class="pb-ring" cx="12" cy="12" r="9"></circle>
+                            <path class="pb-check" d="M7.8 12.4l2.9 2.9 5.5-5.8"></path>
+                        </svg>
+                    </div>
+                    <div class="pb-text">
+                        <div class="pb-label state"></div>
+                        <div class="pb-time">0.0s</div>
+                    </div>
+                    <div class="pb-percent percentage">
+                        <span class="pb-num">0</span><span class="pb-sign">%</span>
+                    </div>
+                </div>
+                <div class="pb-track loading-bar">
+                    <div class="pb-fill progress-bar"></div>
+                </div>
             </div>
         </div>
 

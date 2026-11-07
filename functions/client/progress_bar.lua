@@ -3,7 +3,7 @@ local progress_callbacks = {}
 --- Generate a progress bar.
 --- @param duration         number            -- milliseconds to run (must be > 0)
 --- @param label            string|nil        -- text to show; falls back to localisation key
---- @param color            string|nil        -- progress bar color hex; falls back to #375a7f
+--- @param color            string|nil        -- progress bar color (any CSS color); falls back to the theme primary (--lc-primary in nui/css/theme.css)
 --- @param callbackFunction function|nil      -- optional callback
 --- @param callbackData     any|nil           -- data passed into the callback
 function progressBar(duration, label, color, callbackFunction, callbackData)

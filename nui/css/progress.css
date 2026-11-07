@@ -1,47 +1,207 @@
+/* =========================================================
+   Progress bar
+   All colors come from theme.css (--lc-*), shared with the notifications,
+   so dark/light switching is handled there. Change colors in theme.css, not here.
+   --pb-accent is overridden at runtime by the `color` param of startProgress.
+   ========================================================= */
 #progress-bar-wrapper {
+    --pb-accent: var(--lc-primary);
+    --pb-bg: var(--lc-bg);
+    --pb-edge: var(--lc-edge);
+    --pb-border: var(--lc-border);
+    --pb-featured: var(--lc-featured);
+    --pb-text: var(--lc-text);
+    --pb-muted: var(--lc-muted);
+    --pb-track: var(--lc-track);
+    --pb-stripe: var(--lc-stripe);
+    --pb-check: var(--lc-on-accent);
+    --pb-shadow: var(--lc-shadow);
+
+    /* left/right + auto margin and a px bottom keep the card on whole pixels (crisp edges) */
     position: fixed;
-    left: 50%;
-    bottom: 8%;
-    transform: translateX(-50%) scale(0);
-    width: 350px;
+    left: 0;
+    right: 0;
+    bottom: 76px;
+    z-index: 9999;
+    width: 360px;
+    margin: 0 auto;
+
+    font-family: 'Montserrat', sans-serif;
+    color: var(--pb-text);
+    -webkit-font-smoothing: antialiased;
+    pointer-events: none;
+    user-select: none;
 
     opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-
-    background: rgba(0, 0, 0, 0.425);
-    color: white;
-    font-weight: 600;
-
-    padding: 15px;
-    border-radius: 10px;
+    transform: translateY(16px);
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1), opacity 0.25s ease;
 }
 #progress-bar-wrapper.active {
-    transform: translateX(-50%) scale(1);
     opacity: 1;
+    transform: none;
 }
-#progress-bar-wrapper .loading-bar {
-    width: 100%;
-    height: 30px;
-    background: rgba(176, 181, 184, 0.144);
-    border-radius: 5px;
-}
-#progress-bar-wrapper .loading-bar .progress-bar {
-    width: 6%;
-    height: 100%;
-    background: #375a7f;
-    border-radius: 5px;
-}
-#progress-bar-wrapper .status {
-    margin-top: 10px;
-}
-#progress-bar-wrapper .status .state {
-    float: left;
-    font-size: 0.9em;
-    letter-spacing: 1pt;
-    width: 100px;
-    height: 20px;
+
+/* ---------- Card ---------- */
+#progress-bar-wrapper .pb-card {
     position: relative;
+    padding: 12px 15px 14px;
+    border-radius: 10px;
+    background: var(--pb-bg);
+    /* The outline is an inset shadow instead of a CSS border: a semi-transparent border sits
+       over the game itself and shows up as a bright 1px rim; inside the background it blends in. */
+    box-shadow: inset 0 0 0 1px var(--pb-edge), var(--pb-shadow);
+    transition: box-shadow 0.3s ease;
 }
-#progress-bar-wrapper .status .percentage {
-    float: right;
+
+/* ---------- Header ---------- */
+#progress-bar-wrapper .pb-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* activity icon: spinner -> check */
+#progress-bar-wrapper .pb-icon {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    background: var(--pb-featured);
+    border: 1px solid var(--pb-border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+#progress-bar-wrapper .pb-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+#progress-bar-wrapper .pb-ring-bg {
+    stroke: var(--pb-track);
+    stroke-width: 2.4;
+}
+#progress-bar-wrapper .pb-ring {
+    stroke: var(--pb-accent);
+    stroke-width: 2.4;
+    filter: brightness(1.5); /* dark accents like #375a7f need a lift to read on the dark card */
+    stroke-dasharray: 15 42;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pb-spin 0.9s linear infinite;
+    transition: stroke-dasharray 0.3s ease, opacity 0.3s ease;
+}
+:root[data-lc-theme="light"] #progress-bar-wrapper .pb-ring {
+    filter: none; /* the lift is only needed on the dark card */
+}
+#progress-bar-wrapper .pb-check {
+    stroke: var(--pb-check);
+    stroke-width: 2.6;
+    stroke-dasharray: 14;
+    stroke-dashoffset: 14;
+}
+
+/* label + remaining time */
+#progress-bar-wrapper .pb-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+#progress-bar-wrapper .pb-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+#progress-bar-wrapper .pb-time {
+    margin-top: 2px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--pb-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* percentage */
+#progress-bar-wrapper .pb-percent {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+#progress-bar-wrapper .pb-num {
+    font-size: 1.3rem;
+}
+#progress-bar-wrapper .pb-sign {
+    margin-left: 2px;
+    font-size: 0.75rem;
+    color: var(--pb-muted);
+}
+
+/* ---------- Track (Bootstrap-style striped progress) ---------- */
+#progress-bar-wrapper .pb-track {
+    position: relative;
+    margin-top: 12px;
+    height: 8px;
+    border-radius: 0.25rem;
+    background: var(--pb-track);
+    overflow: hidden;
+}
+#progress-bar-wrapper .pb-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background-color: var(--pb-accent);
+    background-image: linear-gradient(45deg,
+        var(--pb-stripe) 25%, transparent 25%,
+        transparent 50%, var(--pb-stripe) 50%,
+        var(--pb-stripe) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+    animation: pb-stripes 1s linear infinite;
+}
+
+/* ---------- Completed ---------- */
+#progress-bar-wrapper.done .pb-card {
+    box-shadow: inset 0 0 0 1px var(--pb-accent), var(--pb-shadow);
+}
+#progress-bar-wrapper.done .pb-icon {
+    background-color: var(--pb-accent);
+    border-color: var(--pb-accent);
+}
+#progress-bar-wrapper.done .pb-ring,
+#progress-bar-wrapper.done .pb-ring-bg {
+    opacity: 0;
+    animation-play-state: paused;
+}
+#progress-bar-wrapper.done .pb-check {
+    animation: pb-draw 0.3s 0.05s ease-out forwards;
+}
+#progress-bar-wrapper.done .pb-num {
+    animation: pb-pop 0.35s ease-out;
+}
+#progress-bar-wrapper.done .pb-fill {
+    animation: none;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes pb-spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes pb-stripes {
+    from { background-position: 1rem 0; }
+    to   { background-position: 0 0; }
+}
+@keyframes pb-draw {
+    to { stroke-dashoffset: 0; }
+}
+@keyframes pb-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
 }

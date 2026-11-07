@@ -1,4 +1,2 @@
-.vt-card {
-	background-color: #fff;
-	color: #000;
-}
+/* Light theme overrides.
+   Colors live in theme.css under :root[data-lc-theme="light"]; only add rules here that are not colors. */

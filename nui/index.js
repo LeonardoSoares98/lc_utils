@@ -650,10 +650,12 @@ $(function () {
         if (item.dark_theme != undefined) {
             if (item.dark_theme == 0){
                 // Light theme
+                document.documentElement.setAttribute("data-lc-theme", "light"); // colors: css/theme.css
                 $("#utils-css-light").prop("disabled", false);
                 $("#utils-css-dark").prop("disabled", true);
             } else if (item.dark_theme == 1){
                 // Dark theme
+                document.documentElement.setAttribute("data-lc-theme", "dark");
                 $("#utils-css-dark").prop("disabled", false);
                 $("#utils-css-light").prop("disabled", true);
             }

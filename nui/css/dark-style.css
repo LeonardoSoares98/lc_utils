@@ -1,4 +1,2 @@
-.vt-card {
-	background-color: #222222df;
-	color: #e1e1e1;
-}
+/* Dark theme overrides.
+   Colors live in theme.css (--lc-* variables); only add rules here that are not colors. */

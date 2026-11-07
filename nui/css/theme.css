@@ -1,0 +1,59 @@
+/* =========================================================
+   lc_ theme tokens - single source of truth for UI colors.
+
+   Dark is the default (:root). Light applies when <html data-lc-theme="light">,
+   which is set by the `changeTheme` export (handled in nui/index.js).
+
+   Other lc_ scripts can share this palette with:
+     <link rel="stylesheet" href="https://cfx-nui-lc_utils/nui/css/theme.css">
+   ========================================================= */
+:root {
+    /* Surfaces */
+    --lc-bg: #222222df;                          /* floating panels (notifications, progress bar) */
+    --lc-card: #2f2f2f;                          /* bootstrap-night .card */
+    --lc-featured: rgba(250, 250, 250, 0.03);    /* .card-featured-theme */
+    --lc-track: #3b3b3b;                         /* bootstrap-night .progress */
+
+    /* Lines */
+    --lc-border: rgba(250, 250, 250, 0.125);     /* bootstrap-night .card border */
+    --lc-edge: rgba(250, 250, 250, 0.06);        /* subtle outline on floating panels */
+
+    /* Text */
+    --lc-text: #e1e1e1;
+    --lc-muted: rgba(250, 250, 250, 0.5);        /* bootstrap-night .text-muted */
+    --lc-on-accent: #fafafa;                     /* text/icons drawn on top of an accent color */
+
+    /* Brand & status */
+    --lc-primary: #375a7f;                       /* bootstrap-night primary */
+    --lc-success: #6ec05f;
+    --lc-warning: #fed953;
+    --lc-info: #1271ec;
+    --lc-error: #d60a2e;
+    --lc-neutral: #8b8b8b;
+
+    /* Effects */
+    --lc-stripe: rgba(250, 250, 250, 0.15);      /* bootstrap-night .progress-bar-striped */
+    --lc-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Light palette follows the lc_ panels in light mode (e.g. the trucker contract filters):
+   #f5f6f8 surface, rgba(128,128,128,.45) pill borders, #007bff primary, bootstrap #212529 text. */
+:root[data-lc-theme="light"] {
+    /* Surfaces */
+    --lc-bg: rgba(245, 246, 248, 0.9);           /* .backgound-theme (light) #f5f6f8 at 90% */
+    --lc-card: #fff;                             /* .card-theme (light) */
+    --lc-featured: #fff;                         /* white chips on the #f5f6f8 surface (like the sort select) */
+    --lc-track: #ced4da;                         /* bootstrap input border grey; #dee2e6 was too faint on #f5f6f8 */
+
+    /* Lines */
+    --lc-border: rgba(128, 128, 128, 0.45);      /* .filter-toggle border */
+    --lc-edge: rgba(128, 128, 128, 0.45);
+
+    /* Text */
+    --lc-text: #212529;                          /* bootstrap body (light) */
+    --lc-muted: #6c757d;                         /* bootstrap .text-muted (light) */
+    --lc-on-accent: #fff;
+
+    /* Brand */
+    --lc-primary: #007bff;                       /* bootstrap primary / --navigation-tab-primary */
+}
